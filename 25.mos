@@ -1,0 +1,3156 @@
+##############################################################
+##
+##  Project                : KDDI MassRO
+##  Operator               : KDDI
+##  Prepared               : NRJ/NRO/DEPLOY
+##  Minimum moshell ver    : 17.0g
+##  Verified SW            : L17Q2
+##  Title                  : KDDI New Integration Common Parameter Settings
+##  Param Management ver   : 021 & Draft_r8
+##  Revision               : A 2017/10/16
+##  Comment                : Parameter setting for L17Q2
+##
+################################################################
+
+################################################################
+##  Script Contents
+################################################################
+##  Cell Lock/Unlock          : No
+##  MO Lock/Unlock            : Yes
+##  CV Creation               : Yes
+##  Login Other Node          : No
+##  Node Restart              : No
+##  Output Session Logs       : No
+##  Output Fallabck script    : No
+##  Parameter Change          : Yes
+##  Parameter Check           : No
+##  Status Check              : No
+################################################################
+
+################################################################
+##  Set moshell options
+################################################################
+
+unset all
+s+
+confb+
+gs+
+uv com_password=bts
+uv com_username=bts
+
+func error_logout
+unset all
+gs-
+confb-
+s-
+endfunc
+
+
+################################################################
+## Variables ( Load All MO for eNB )
+################################################################
+$date = `date +%Y%m%d`
+$date1 = `date +%y%m%d_%H%M`
+$password =  bts
+lt all
+sget ^ENodeBFunction=1$ ^eNBId$ > $ENB
+$flashdir = .
+
+################################################################
+##  Operator check
+################################################################
+//sget ^ENodeBFunction=1$ eNodeBPlmnId > $plmn
+//if $plmn[mnc] = 50
+//  l echo "\033[1;34m Operator Check is OK.\033[0;39m"
+//else
+//  l echo "\033[1;31m This is not target Operator.\033[0;39m"
+//  error_logout
+//  return
+//fi
+
+
+################################################################
+##  moshell version check
+################################################################
+$dcg_minimum_moshell_version = 17.0g
+if $dcg_minimum_moshell_version > $moshell_version || $moshell_version ~ 9.0 || $moshell_version ~ 10.0 || $moshell_version ~ 11.0
+  l echo "\033[1;31m Moshell version is too old. $dcg_minimum_moshell_version is required.\033[0;39m"
+  pv $moshell_version
+  error_logout
+  return
+else
+  l echo "\033[1;34m Moshell version is OK.\033[0;39m"
+fi
+
+
+################################################################
+##  Node Type check
+################################################################
+//sget 0 mimInfo > $node
+//if $node[mimName] ~ ^ERBS
+//  l echo "\033[1;34m Node Type is OK.\033[0;39m"
+//else
+//  l echo "\033[1;31m This is not eNB.\033[0;39m"
+//  sget 0
+//  error_logout
+//  return
+//fi
+
+
+################################################################
+##  Node Type / Node check
+################################################################
+
+
+################################################################
+##  SW Level check
+################################################################
+//sget 0 mimInfo > $swlevel
+//if $swlevel[mimName] ~ ^ERBS_NODE_MODEL_H && $swlevel[mimVersion] = 1.362
+//  l echo "\033[1;34m SW Level is OK.\033[0;39m"
+//else
+//  l echo "\033[1;31mTHIS SW LEVEL IS NOT SUPPORTED!\033[0;39m"
+//  error_logout
+//  return
+//fi
+
+
+################################################################
+##  Complete MOM check
+################################################################
+//if $momversion ~ _COMPLETE$
+//  l echo "\033[1;34m Complete MOM is OK.\033[0;39m"
+//else
+//  l echo "\033[1;31m Complete MOM is not found. Please install the Complete MOM.\033[0;39m"
+//  error_logout
+//  return
+//fi
+
+
+################################################################
+##  Region Check (auO & auQ)
+################################################################
+//if 524288 <= $ENB && $ENB <= 554288
+//  $region = auQ
+//else if 557056 <= $ENB && $ENB <= 587056
+//  $region = auQ
+//else if 589824 <= $ENB && $ENB <= 619824
+//  $region = auO
+//else if 622592 <= $ENB && $ENB <= 652592
+//  $region = auO
+//fi
+
+
+####################################################
+##  Set moshell options
+####################################################
+
+
+mr b11cell
+mr cellF_B1
+mr b1cell_10m
+mr b1cell_20m
+mr b41cell
+mr allextcell
+mr extband18cell
+mr cellF_10m
+mr cellF_20m
+mr ext_cellF_10m
+mr ext_cellF_20m
+
+ma b11cell ^EUtranCellFDD=.*$ earfcndl 4900$
+ma cellF_B1 ^EUtranCellFDD=.*$ earfcndl (100$|150$)
+ma b1cell_10m ^EUtranCellFDD=.*$ earfcndl 150$
+ma b1cell_20m ^EUtranCellFDD=.*$ earfcndl 100$
+ma b41cell ^EUtranCellTDD=.*$ earfcn (41040$|40842$)
+ma allextcell ^ExternalEUtranCellFDD=.*$
+ma extband18cell ^ExternalEUtranCellFDD=.*$ ^freqband$ ^18$
+ma cellF_10m ^EUtranCellFDD=.*$ dlChannelBandwidth 10000$
+ma cellF_20m ^EUtranCellFDD=.*$ dlChannelBandwidth 20000$
+ma ext_cellF_10m ^ExternalEUtranCellFDD=.*$ dlChannelBandwidth 10000$
+ma ext_cellF_20m ^ExternalEUtranCellFDD=.*$ dlChannelBandwidth 20000$
+
+
+################################################################
+##  Common eNB Parameter
+################################################################
+
+//set AddressIPv4 configurationMode 0
+#=== AdmissionControl ===#
+//E20070
+ ^AdmissionControl=.*$ admNrRbDifferentiationThr 1000
+//E20071
+ ^AdmissionControl=.*$ admNrRrcDifferentiationThr 1000
+//E20072
+ ^AdmissionControl=.*$ admResourceMinQciPrio 5
+//E20074
+ ^AdmissionControl=.*$ arpBasedPreEmptionState 0
+//E20075
+ ^AdmissionControl=.*$ dlAdmDifferentiationThr 500
+//E20076
+ ^AdmissionControl=.*$ dlAdmOverloadThr 950
+//E20077
+ ^AdmissionControl=.*$ dlMbmsGbrRatio 200
+//E20081
+ ^AdmissionControl=.*$ nrOfPaConnReservationsPerCell 1
+//E20082
+ ^AdmissionControl=.*$ nrOfRbReservationsPerPaConn 4
+//E20083
+ ^AdmissionControl=.*$ paArpOverride 2
+//E20084
+ ^AdmissionControl=.*$ resourceReservationForDifferentiation 5
+//E20085
+ ^AdmissionControl=.*$ resourceReservationForPAState 1
+//E20086
+ ^AdmissionControl=.*$ ulAdmDifferentiationThr 500
+//E20087
+ ^AdmissionControl=.*$ ulAdmOverloadThr 950
+//E20094
+ ^AdmissionControl=.*$ zzzTemp14 1000
+//E20010
+ ^AdmissionControl=.*$ zzzTemp2 -1
+
+#====AirIfLoadProfile====#
+//E20122
+ ^AirIfLoadProfile=1$ ailgChangePeriod 1
+//E20123
+ ^AirIfLoadProfile=1$ ailgHighPrio 2
+//E20124
+ ^AirIfLoadProfile=1$ ailgLoadType 2
+//E20125
+ ^AirIfLoadProfile=1$ ailgLowPrioModType 0
+//E20127
+ ^AirIfLoadProfile=1$ dlPrbLoadLevel 100
+//E20128
+ ^AirIfLoadProfile=1$ minLoadLevelPdcch 100
+//E20129
+ ^AirIfLoadProfile=1$ noOfOcngPrbSeries 1
+//E20131-E20132-E20133-E20134
+ ^AirIfLoadProfile=1$ ocngPrbSerie pdschModType=0,prbFirst=0,prbLast=0,usedSubFrameNo=true true true true true true true true true true
+//set ^AirIfLoadProfile=1$ trafficModelPrb bitRatePerQci=0 0 0 0 0 0 0 0 0,bufferStatus=1,noOfArtificialUsers=0,qciDistSinrHigh=0 0 0 0 0 0 0 0 0,qciDistSinrLow=0 0 0 0 0 0 0 0 0,qciDistSinrMedium=100 0 0 0 0 0 0 0 0,ulDlRatioPerQci=0 0 0 0 0 0 0 0 0
+
+//E20137-E20138-E20139-E20140-E20141-E20142-E20143
+^AirIfLoadProfile=1$ trafficModelPrb bitRatePerQci=0 0 0 0 0 0 0 0 0
+^AirIfLoadProfile=1$ trafficModelPrb bufferStatus=1
+^AirIfLoadProfile=1$ trafficModelPrb noOfArtificialUsers=0
+^AirIfLoadProfile=1$ trafficModelPrb qciDistSinrHigh=0 0 0 0 0 0 0 0 0
+^AirIfLoadProfile=1$ trafficModelPrb qciDistSinrLow=0 0 0 0 0 0 0 0 0
+^AirIfLoadProfile=1$ trafficModelPrb qciDistSinrMedium=100 0 0 0 0 0 0 0 0
+^AirIfLoadProfile=1$ trafficModelPrb ulDlRatioPerQci=0 0 0 0 0 0 0 0 0
+
+#=== AlarmPort ===#
+//E20155
+ ^AlarmPort=.*$ administrativeState 1
+//E20161
+ perceivedSeverity 3
+
+###===AmoFunction===###
+//E20163
+ ^AmoFunction=.*$ amoAllowedInterVendor true
+
+
+#=== AnrFunctionEUtran ===#
+//E20198
+ ^AnrFunctionEUtran=1$ anrEutranInterFMeasReportDecr 1
+//E20199
+ ^AnrFunctionEUtran=1$ anrEutranInterFMeasReportIncr 10
+//E20200
+ ^AnrFunctionEUtran=1$ anrEutranInterFMeasReportMax 500
+//E20201
+ ^AnrFunctionEUtran=1$ anrEutranInterFMeasReportMin 50
+//E20203
+//set ^AnrFunctionEUtran=1$ anrInterFreqState 1
+//E20204
+//set ^AnrFunctionEUtran=1$ anrIntraFreqState 1
+//E20205
+ ^AnrFunctionEUtran=1$ anrUesEUtraIntraFDecr 10
+//E20206
+ ^AnrFunctionEUtran=1$ anrUesEUtraIntraFIncrAnr 20
+//E20207
+ ^AnrFunctionEUtran=1$ anrUesEUtraIntraFIncrHo 100
+//E20208
+ ^AnrFunctionEUtran=1$ anrUesEUtraIntraFMax 0
+//E20209
+ ^AnrFunctionEUtran=1$ anrUesEUtraIntraFMin 0
+//E20210
+ ^AnrFunctionEUtran=1$ anrUesThreshInterFDecr 10
+//E20211
+ ^AnrFunctionEUtran=1$ anrUesThreshInterFIncrAnr 20
+//E20212
+ ^AnrFunctionEUtran=1$ anrUesThreshInterFIncrHo 100
+//E20213
+ ^AnrFunctionEUtran=1$ anrUesThreshInterFMax 0
+//E20214
+ ^AnrFunctionEUtran=1$ anrUesThreshInterFMin 0
+//E20215
+ ^AnrFunctionEUtran=1$ cellAddRsrpThresholdEutran -1260
+//E20216
+ ^AnrFunctionEUtran=1$ cellAddRsrqThresholdEutran -1920
+//E20218
+ ^AnrFunctionEUtran=1$ hoAllowedEutranPolicy true
+//E20219
+ ^AnrFunctionEUtran=1$ lbCellOffloadCapacityPolicy 20000
+//E20220
+//set ^AnrFunctionEUtran=1$ x2SetupPolicy true
+
+#=== AnrFunction ===#
+//E20166
+ ^AnrFunction=1$ cellRelHoAttRateThreshold 0
+//E20167
+ ^AnrFunction=1$ maxNoPciReportsEvent 15
+//E20168
+ ^AnrFunction=1$ maxTimeEventBasedPciConf 30
+//E20169
+//deprecated//set ^AnrFunction=1$ maxNoPciReportsInact 30
+//E20173
+ ^AnrFunction=1$ perEcgiMeasPlmnWhiteList true
+//E20174
+ ^AnrFunction=1$ plmnWhiteListEnabled false
+//E20175
+ ^AnrFunction=1$ prioHoRate 100
+//E20176
+ ^AnrFunction=1$ prioHoSuccRate 100
+//E20177
+ ^AnrFunction=1$ prioTime 100
+//E20178
+ ^AnrFunction=1$ probCellDetectLowHoSuccThres 10
+//E20179
+ ^AnrFunction=1$ probCellDetectLowHoSuccTime 10
+//E20180
+ ^AnrFunction=1$ probCellDetectMedHoSuccThres 50
+//E20181
+ ^AnrFunction=1$ probCellDetectMedHoSuccTime 4
+//E20183
+ ^AnrFunction=1$ removeNcellTime 1
+//E20184
+ ^AnrFunction=1$ removeNenbTime 1
+//E20185
+ ^AnrFunction=1$ removeNrelTime 7
+
+#=== AntennaNearUnit ===#
+//Not in parameter Sheet
+//set ^AntennaNearUnit=.*$ administrativeState 0
+
+#=== AntennaUnit ===#
+//E20272
+ ^AntennaUnit=.*$ mechanicalAntennaTilt 0
+
+#=== AntennaSubunit ===#
+//E20263
+ ^AntennaSubunit=.*$ azimuthHalfPowerBeamwidth 65
+//E20264
+ ^AntennaSubunit=.*$ commonChBeamfrmPortMap 0
+//E20265
+ ^AntennaSubunit=.*$ customComChBeamfrmWtsAmplitude 0 0 0 0 0 0 0 0
+//E20266
+ ^AntennaSubunit=.*$ customComChBeamfrmWtsPhase 0 0 0 0 0 0 0 0
+//E20267
+ ^AntennaSubunit=.*$ maxTotalTilt 900
+//E20268
+ ^AntennaSubunit=.*$ minTotalTilt -900
+
+#=== AutoCellCapEstFunction ===#
+//E20303
+ ^AutoCellCapEstFunction=1$ useEstimatedCellCap true
+
+#=== BbProcessingResource ===#
+//E20425
+ ^BbProcessingResource=1$ licCapDistr 100
+//E20426
+ ^BbProcessingResource=1$ licPrbUnit 25
+
+#====BrmBackupHousekeeping====#
+//E20539
+ ^BrmBackupHousekeeping=1$ autoDelete 1
+//E20541
+ ^BrmBackupHousekeeping=1$ maxStoredManualBackups 30
+
+#====BrmBackupManager====#
+//E20548
+ ^BrmBackupManager=1$ autoExport 2
+
+###===BrmBackupScheduler===###
+//E20569
+ ^BrmBackupScheduler=1$ adminState 1
+//E20570
+ ^BrmBackupScheduler=1$ maxStoredScheduledBackups 5
+//E20576
+ ^BrmBackupScheduler=1$ autoExport 2
+
+#=== CarrierAggregationFunction ===#
+//E20691
+ ^CarrierAggregationFunction=1$ caPreemptionThreshold 24
+//E20693
+ ^CarrierAggregationFunction=1$ caRateAdjustCoeff 10
+//E20694
+ ^CarrierAggregationFunction=1$ caUsageLimit 65535
+//E20698
+ ^CarrierAggregationFunction=1$ enhancedSelectionOfMimoAndCa false
+//E20699
+ ^CarrierAggregationFunction=1$ fourLayerMimoPreferred false
+//E20706
+ ^CarrierAggregationFunction=1$ pdcchEnhancedLaForVolte true
+//E20707
+ ^CarrierAggregationFunction=1$ sCellActDeactDataThres 30
+//E20708
+ ^CarrierAggregationFunction=1$ sCellActDeactDataThresHyst 20
+//E20710
+ ^CarrierAggregationFunction=1$ sCellActDeactUlDataThresh 100
+//E20711
+ ^CarrierAggregationFunction=1$ sCellActDeactUlDataThreshHyst 90
+//E20712
+ ^CarrierAggregationFunction=1$ sCellActProhibitTimer 10
+//E20713
+ ^CarrierAggregationFunction=1$ sCellDeactDelayTimer 50
+//E20714
+ ^CarrierAggregationFunction=1$ sCellDeactOutOfCoverageTimer 100
+//E20715
+ ^CarrierAggregationFunction=1$ sCellDeactProhibitTimer 200
+//E20716
+ ^CarrierAggregationFunction=1$ sCellScheduleSinrThres 0
+//E20718
+ ^CarrierAggregationFunction=1$ sCellSelectionMode 1
+//E20721
+ ^CarrierAggregationFunction=1$ waitForAdditionalSCellOpportunity 10000
+//E20722
+ ^CarrierAggregationFunction=1$ waitForBetterSCellRep 1000
+//E20724
+ ^CarrierAggregationFunction=1$ waitForCaOpportunity 10000
+
+#=== CcLink ===#
+//cr Equipment=1,CcLink=1
+//set ^CcLink administrativeState 1
+
+#=== DataRadioBearer ===#
+//E20935
+ ^DataRadioBearer=1$ dlMaxRetxThreshold 32
+//E20938
+ ^DataRadioBearer=1$ ulMaxRetxThreshold 32
+##########################################################
+
+#=== DnsClient ===#
+//E20962
+ ^DnsClient=1$ dscp 40
+
+#=== DrxProfile ===#
+//E20972
+ ^DrxProfile=0$ drxInactivityTimer 15
+ ^DrxProfile=1$ drxInactivityTimer 7
+//E20974
+ ^DrxProfile=0$ drxRetransmissionTimer 1
+ ^DrxProfile=1$ drxRetransmissionTimer 3
+//E20976
+ ^DrxProfile=0$ longDrxCycle 9
+ ^DrxProfile=1$ longDrxCycle 3
+//E20977
+ ^DrxProfile=0$ longDrxCycleOnly 7
+ ^DrxProfile=1$ longDrxCycleOnly 3
+//E20978
+ ^DrxProfile=0$ onDurationTimer 4
+ ^DrxProfile=1$ onDurationTimer 4
+//E20979
+ ^DrxProfile=0$ shortDrxCycle 7
+ ^DrxProfile=1$ shortDrxCycle 7
+//E20980
+ ^DrxProfile=0$ shortDrxCycleTimer 4
+ ^DrxProfile=1$ shortDrxCycleTimer 0
+
+
+#=== EcPort ===#
+//E22349
+ ^EcPort=.*$ cascadingOrder 0
+
+#=== ENodeBFunction ===#
+//E21100
+ ^ENodeBFunction=.*$ alignTtiBundWUlTrigSinr 0
+//E21101
+ ^ENodeBFunction=.*$ altNasBackTo 0
+//E21104
+ ^ENodeBFunction=.*$ caAwareMfbiIntraCellHo false
+//E21108
+ ^ENodeBFunction=.*$ csfbMeasFromIdleMode true
+//E21114
+ ^ENodeBFunction=.*$ dnsLookupOnTai 0
+//E21115
+ ^ENodeBFunction=.*$ dnsLookupTimer 0
+//E21117
+ ^ENodeBFunction=.*$ dscpLabel 56
+//E21127
+ ^ENodeBFunction=.*$ forcedSiTunnelingActive false
+//E21130
+ ^ENodeBFunction=.*$ initPreschedulingEnable true
+//E21134
+ ^ENodeBFunction=.*$ licCapDistrMethod 0
+//E21135
+ ^ENodeBFunction=.*$ licConnectedUsersPercentileConf 90
+//E21136
+ ^ENodeBFunction=.*$ licDlBbPercentileConf 90
+//E21137
+ ^ENodeBFunction=.*$ licDlPrbPercentileConf 90
+//E21138
+ ^ENodeBFunction=.*$ licUlBbPercentileConf 90
+//E21139
+ ^ENodeBFunction=.*$ licUlPrbPercentileConf 90
+//E21141
+ ^ENodeBFunction=.*$ maxRandc 255
+//E21142
+ ^ENodeBFunction=.*$ measuringEcgiWithAgActive false
+//E21144
+ ^ENodeBFunction=.*$ mfbiSupportPolicy true
+//E21145
+ ^ENodeBFunction=.*$ minRandc 1
+//E21146
+ ^ENodeBFunction=.*$ mtRreWithoutNeighborActive false
+//E21147
+ ^ENodeBFunction=.*$ nnsfMode 1
+//E21148
+ ^ENodeBFunction=.*$ prioritizeAdditionalBands false
+//E21149
+ ^ENodeBFunction=.*$ pwsPersistentStorage 0
+//E21150
+ ^ENodeBFunction=.*$ randUpdateInterval 200
+//E21155
+ ^ENodeBFunction=.*$ rrcConnReestActive true
+//E21157
+ ^ENodeBFunction=.*$ s1GtpuEchoEnable 0
+//E21159
+ ^ENodeBFunction=.*$ s1HODirDataPathAvail false
+//E21160
+ ^ENodeBFunction=.*$ s1RetryTimer 30
+//E21161
+ ^ENodeBFunction=.*$ sctpRef SctpEndpoint=1
+//E21165
+ ^ENodeBFunction=.*$ tOutgoingHoExecCdma1xRtt 5
+//E21166
+ ^ENodeBFunction=.*$ tRelocOverall 15
+//E21167
+//deprecated//set ^ENodeBFunction=.*$ tRelocOverallValue 15
+//E21171
+ ^ENodeBFunction=.*$ timeAndPhaseSynchCritical true
+//E21173
+ ^ENodeBFunction=.*$ timePhaseMaxDeviation 100
+//E21181
+ ^ENodeBFunction=.*$ timePhaseMaxDeviationTdd1 100
+//E21197
+ ^ENodeBFunction=.*$ ulSchedulerDynamicBWAllocationEnabled true
+//E21200
+ ^ENodeBFunction=.*$ useBandPrioritiesInSCellEval false
+//E21209
+ ^ENodeBFunction=.*$ x2GtpuEchoEnable 1
+//E21210
+ ^ENodeBFunction=.*$ x2IpAddrViaS1Active true
+//E21211
+ ^ENodeBFunction=.*$ x2SetupTwoWayRelations false
+//E21217
+ ^ENodeBFunction=.*$ x2retryTimerMaxAuto 1440
+//E21218
+ ^ENodeBFunction=.*$ x2retryTimerStart 30
+//E21228
+ ^ENodeBFunction=.*$ zzzTemporary18 1
+//E21234
+ ^ENodeBFunction=.*$ zzzTemporary23 1
+
+#=== EquipmentDiscovery ===#
+//E22397
+ ^EquipmentDiscovery=.*$ portConfiguration 0
+
+#=== EquipmentSupportFunction ===#
+//E22408
+ ^EquipmentSupportFunction=.*$ supportSystemControl true
+//E22403
+ ^EquipmentSupportFunction=.*$ autoCreateUnits true
+
+#=== EthernetPort ===#
+//E22454
+ ^EthernetPort=.*$ admOperatingMode 5
+//E22456
+ ^EthernetPort=.*$ autoNegEnable true
+
+#=== ExternalENodeBFunction ===#
+//move to 28 script////E22587
+//move to 28 script//set ^ExternalENodeBFunction=.*$ mfbiSupport true
+//move to 28 script////cr Equipment=1,ExternalNode=1
+
+#=== ExternalNode ===#
+//No need to set//set ^ExternalNode=.*$ informationOnly false
+
+#=====================================================#
+##feature setting(Update_Date 11/02/2017)##
+//F0001
+ ^FeatureState=CXC4010319$ featurestate 1
+//F0002
+ ^FeatureState=CXC4010320$ featurestate 0
+//F0003
+ ^FeatureState=CXC4010511$ featurestate 0
+//F0004
+ ^FeatureState=CXC4010512$ featurestate 0
+//F0005
+ ^FeatureState=CXC4010609$ featurestate 1
+//F0006
+ ^FeatureState=CXC4010613$ featurestate 1
+
+//F0008
+ ^FeatureState=CXC4010616$ featurestate 0
+//F0009
+ ^FeatureState=CXC4010618$ featurestate 0
+//F0010//Anr deactivated by Urabe//
+ ^FeatureState=CXC4010620$ featurestate 0
+//F0011
+ ^FeatureState=CXC4010717$ featurestate 0
+//F0012
+ ^FeatureState=CXC4010723$ featurestate 1
+//F0013
+ ^FeatureState=CXC4010770$ featurestate 1
+//F0014
+ ^FeatureState=CXC4010841$ featurestate 1
+//F0015
+ ^FeatureState=CXC4010856$ featurestate 1
+//F0016
+ ^FeatureState=CXC4010912$ featurestate 1
+//F0017
+ ^FeatureState=CXC4010949$ featurestate 0
+
+//F0019
+ ^FeatureState=CXC4010956$ featurestate 0
+//F0020
+ ^FeatureState=CXC4010959$ featurestate 1
+//F0021
+ ^FeatureState=CXC4010960$ featurestate 1
+//F0022
+ ^FeatureState=CXC4010961$ featurestate 1
+//F0023
+ ^FeatureState=CXC4010962$ featurestate 1
+//F0024
+ ^FeatureState=CXC4010967$ featurestate 1
+//F0025
+ ^FeatureState=CXC4010973$ featurestate 0
+//F0026
+ ^FeatureState=CXC4010974$ featurestate 1
+
+//F0028
+ ^FeatureState=CXC4010990$ featurestate 1
+//F0029
+ ^FeatureState=CXC4011011$ featurestate 0
+//F0030
+ ^FeatureState=CXC4011018$ featurestate 0
+//F0031
+ ^FeatureState=CXC4011033$ featurestate 1
+//F0032
+ ^FeatureState=CXC4011034$ featurestate 0
+
+//F0034
+ ^FeatureState=CXC4011055$ featurestate 0
+
+//F0036
+ ^FeatureState=CXC4011057$ featurestate 0
+//F0037
+ ^FeatureState=CXC4011059$ featurestate 1
+//F0038
+ ^FeatureState=CXC4011060$ featurestate 1
+//F0039
+ ^FeatureState=CXC4011061$ featurestate 1
+//F0040
+ ^FeatureState=CXC4011062$ featurestate 1
+//F0041
+ ^FeatureState=CXC4011063$ featurestate 0
+//F0042
+ ^FeatureState=CXC4011064$ featurestate 1
+//F0043
+ ^FeatureState=CXC4011072$ featurestate 0
+//F0044
+ ^FeatureState=CXC4011074$ featurestate 1
+//F0046
+ ^FeatureState=CXC4011155$ featurestate 1
+//F0048
+ ^FeatureState=CXC4011163$ featurestate 0
+
+//F0050
+ ^FeatureState=CXC4011242$ featurestate 0
+//F0051
+ ^FeatureState=CXC4011245$ featurestate 1
+//F0052
+ ^FeatureState=CXC4011246$ featurestate 0
+//F0053
+ ^FeatureState=CXC4011247$ featurestate 0
+//F0054
+ ^FeatureState=CXC4011251$ featurestate 1
+//F0055
+ ^FeatureState=CXC4011252$ featurestate 1
+
+//F0057
+ ^FeatureState=CXC4011254$ featurestate 0
+//F0058
+ ^FeatureState=CXC4011255$ featurestate 0
+//F0059
+ ^FeatureState=CXC4011256$ featurestate 0
+//F0060
+ ^FeatureState=CXC4011258$ featurestate 0
+//F0061
+ ^FeatureState=CXC4011262$ featurestate 0
+//F0062
+ ^FeatureState=CXC4011264$ featurestate 0
+//F0063
+ ^FeatureState=CXC4011266$ featurestate 0
+
+//F0066
+ ^FeatureState=CXC4011326$ featurestate 0
+//F0067
+ ^FeatureState=CXC4011327$ featurestate 1
+//F0068
+ ^FeatureState=CXC4011345$ featurestate 1
+//F0069
+ ^FeatureState=CXC4011346$ featurestate 0
+
+//F0071
+ ^FeatureState=CXC4011365$ featurestate 0
+//F0072
+ ^FeatureState=CXC4011366$ featurestate 1
+//F0073
+ ^FeatureState=CXC4011368$ featurestate 0
+
+//F0075
+ ^FeatureState=CXC4011372$ featurestate 0
+
+/F0079
+ ^FeatureState=CXC4011378$ featurestate 0
+//F0080
+ ^FeatureState=CXC4011422$ featurestate 0
+
+//F0082
+ ^FeatureState=CXC4011443$ featurestate 1
+//F0083
+ ^FeatureState=CXC4011444$ featurestate 0
+
+//F0085
+ ^FeatureState=CXC4011477$ featurestate 1
+//F0086
+ ^FeatureState=CXC4011478$ featurestate 0
+//F0087
+ ^FeatureState=CXC4011479$ featurestate 1
+//F0088
+ ^FeatureState=CXC4011481$ featurestate 0
+
+//F0090
+ ^FeatureState=CXC4011485$ featurestate 1
+//F0091
+ ^FeatureState=CXC4011513$ featurestate 0
+//F0092
+ ^FeatureState=CXC4011515$ featurestate 1
+//F0093
+ ^FeatureState=CXC4011554$ featurestate 0
+//F0094
+ ^FeatureState=CXC4011555$ featurestate 0
+//F0095
+ ^FeatureState=CXC4011557$ featurestate 1
+//F0096
+ ^FeatureState=CXC4011558$ featurestate 0
+
+//F0098
+ ^FeatureState=CXC4011567$ featurestate 0
+//F0099
+ ^FeatureState=CXC4011613$ featurestate 0
+//F0100
+ ^FeatureState=CXC4011618$ featurestate 0
+
+ ^FeatureState=CXC4011649$ featurestate 0
+//F0102
+ ^FeatureState=CXC4011663$ featurestate 0
+//F0103
+ ^FeatureState=CXC4011664$ featurestate 0
+//F0104
+ ^FeatureState=CXC4011665$ featurestate 0
+//F0105
+ ^FeatureState=CXC4011666$ featurestate 0
+
+//F0107
+ ^FeatureState=CXC4011698$ featurestate 0
+//F0108
+ ^FeatureState=CXC4011699$ featurestate 0
+//F0109
+ ^FeatureState=CXC4011700$ featurestate 0
+
+ ^FeatureState=CXC4011710$ featurestate 0
+//F0111
+ ^FeatureState=CXC4011711$ featurestate 1
+//F0112
+ ^FeatureState=CXC4011712$ featurestate 0
+
+//F0115
+ ^FeatureState=CXC4011715$ featurestate 0
+//F0116
+ ^FeatureState=CXC4011716$ featurestate 0
+
+ ^FeatureState=CXC4011802$ featurestate 1
+//F0119
+ ^FeatureState=CXC4011803$ featurestate 0
+//F0120
+ ^FeatureState=CXC4011804$ featurestate 0
+//F0121
+ ^FeatureState=CXC4011807$ featurestate 1
+/F0122
+ ^FeatureState=CXC4011808$ featurestate 0
+//F0123
+ ^FeatureState=CXC4011810$ featurestate 0
+//F0124
+ ^FeatureState=CXC4011811$ featurestate 1
+//F0125
+ ^FeatureState=CXC4011812$ featurestate 0
+
+//F0127
+ ^FeatureState=CXC4011814$ featurestate 0
+//F0128
+ ^FeatureState=CXC4011815$ featurestate 0
+//F0129
+ ^FeatureState=CXC4011820$ featurestate 0
+//need to confirm//set ^FeatureState=CXC4011823$ featurestate 0
+//F0131
+ ^FeatureState=CXC4011838$ featurestate 0
+//F0132
+ ^FeatureState=CXC4011840$ featurestate 0
+//F0133
+ ^FeatureState=CXC4011842$ featurestate 0
+//F0134
+ ^FeatureState=CXC4011910$ featurestate 1
+//F0135
+ ^FeatureState=CXC4011911$ featurestate 0
+//F0136
+ ^FeatureState=CXC4011913$ featurestate 0
+//F0137
+ ^FeatureState=CXC4011914$ featurestate 0
+
+//F0138
+//Toyosu setting Temporary Multiple Ethernet Ports
+ ^FeatureState=CXC4011915$ featurestate 1
+//F0142
+ ^FeatureState=CXC4011929$ featurestate 0
+
+//F0144
+ ^FeatureState=CXC4011931$ featurestate 0
+//F0145
+ ^FeatureState=CXC4011932$ featurestate 0
+//F0146
+ ^FeatureState=CXC4011933$ featurestate 0
+//F0147
+ ^FeatureState=CXC4011937$ featurestate 0
+//F0148
+ ^FeatureState=CXC4011938$ featurestate 0
+/F0149
+ ^FeatureState=CXC4011939$ featurestate 0
+//F0150
+ ^FeatureState=CXC4011940$ featurestate 0
+//F0151
+ ^FeatureState=CXC4011941$ featurestate 0
+//F0152
+ ^FeatureState=CXC4011942$ featurestate 1
+/F0153
+ ^FeatureState=CXC4011943$ featurestate 0
+//F0154
+ ^FeatureState=CXC4011944$ featurestate 0
+
+//F0156
+ ^FeatureState=CXC4011951$ featurestate 0
+
+//F0158
+ ^FeatureState=CXC4011958$ featurestate 0
+//F0159
+ ^FeatureState=CXC4011966$ featurestate 0
+//F0160
+ ^FeatureState=CXC4011967$ featurestate 0
+/F0161
+ ^FeatureState=CXC4011968$ featurestate 0
+
+//F0164
+ ^FeatureState=CXC4011975$ featurestate 0
+
+//F0166
+ ^FeatureState=CXC4011981$ featurestate 0
+//F0167
+ ^FeatureState=CXC4011982$ featurestate 0
+
+//F0169
+ ^FeatureState=CXC4011984$ featurestate 0
+//F0170
+ ^FeatureState=CXC4011991$ featurestate 0
+//F0171
+ ^FeatureState=CXC4011996$ featurestate 0
+//F0172
+ ^FeatureState=CXC4011999$ featurestate 0
+//F0173
+ ^FeatureState=CXC4012002$ featurestate 0
+//F0174
+ ^FeatureState=CXC4012003$ featurestate 0
+//F0175
+ ^FeatureState=CXC4012012$ featurestate 0
+//F0176
+ ^FeatureState=CXC4012013$ featurestate 0
+//F0177
+ ^FeatureState=CXC4012014$ featurestate 0
+//F0178
+ ^FeatureState=CXC4012015$ featurestate 0
+//F0179
+ ^FeatureState=CXC4012018$ featurestate 0
+//F0180
+ ^FeatureState=CXC4012019$ featurestate 0
+/F0181
+ ^FeatureState=CXC4012020$ featurestate 0
+
+/F0183
+ ^FeatureState=CXC4012023$ featurestate 0
+//F0184
+ ^FeatureState=CXC4012034$ featurestate 0
+/F0185
+ ^FeatureState=CXC4012036$ featurestate 0
+//F0186
+ ^FeatureState=CXC4012043$ featurestate 0
+//F0187
+ ^FeatureState=CXC4012050$ featurestate 0
+//F0188
+ ^FeatureState=CXC4012051$ featurestate 0
+//F0189
+ ^FeatureState=CXC4012052$ featurestate 0
+//F0190
+ ^FeatureState=CXC4012053$ featurestate 0
+//F0191
+ ^FeatureState=CXC4012070$ featurestate 0
+
+//F0193
+ ^FeatureState=CXC4012081$ featurestate 0
+//F0195
+ ^FeatureState=CXC4012089$ featurestate 0
+//F0196
+ ^FeatureState=CXC4012095$ featurestate 0
+//F0197
+ ^FeatureState=CXC4012096$ featurestate 0
+//F0198
+ ^FeatureState=CXC4012097$ featurestate 0
+//F0199
+ ^FeatureState=CXC4012101$ featurestate 0
+//F0200
+ ^FeatureState=CXC4012102$ featurestate 0
+//F0201
+ ^FeatureState=CXC4012104$ featurestate 0
+
+//F0203
+ ^FeatureState=CXC4012129$ featurestate 0
+//F0204
+ ^FeatureState=CXC4012131$ featurestate 0
+//F0205
+ ^FeatureState=CXC4012162$ featurestate 0
+//F0206
+ ^FeatureState=CXC4012163$ featurestate 0
+//F0207
+ ^FeatureState=CXC4040002$ featurestate 0
+//F0208
+ ^FeatureState=CXC4040004$ featurestate 0
+//F0209
+//set ^FeatureState=CXC4040005$ featurestate 0
+//F0210
+ ^FeatureState=CXC4040006$ featurestate 0
+//F0211
+ ^FeatureState=CXC4040007$ featurestate 0
+//F0212
+ ^FeatureState=CXC4040008$ featurestate 0
+//F0213
+ ^FeatureState=CXC4040009$ featurestate 0
+//F0214
+ ^FeatureState=CXC4040010$ featurestate 0
+//F0215
+ ^FeatureState=CXC4040011$ featurestate 0
+//F0217
+ ^FeatureState=CXC4040015$ featurestate 0
+//F0218
+ ^FeatureState=CXC4040016$ featurestate 0
+//F0219
+ ^FeatureState=CXC4040017$ featurestate 0
+//F0220
+ ^FeatureState=CXC4040018$ featurestate 0
+####====FieldReplaceableUnit====####
+
+//E22840
+ ^FieldReplaceableUnit=.*$ administrativeState 1
+#====================================#
+//E22892
+ ^Fm=.*$ heartbeatInterval 60
+
+#=====================================#
+//set ^GtpuApplicationTunnel=.*$ gtpuApplicationTunnelId RDN
+#===========================================================#
+//E23162
+ ^InterfaceIPv4=.*$ mtu 1500
+//E23166
+ ^InterfaceIPv4.*$ routesHoldDownTimer 180
+#==========================================================#
+//cr Transport=1,LagPort=1
+//set ^LagPort=.*$ administrativeState 0
+//E23270
+ ^LdapAuthenticationMethod=.*$ administrativeState 1
+
+#=== LoadBalancingFunction ===#
+//E23289
+ ^LoadBalancingFunction=1$ lbCaCapHysteresis 20
+//E23290
+ ^LoadBalancingFunction=1$ lbCaThreshold 800
+//E23291
+ ^LoadBalancingFunction=1$ lbCauseCodeS1SourceTriggersOffload 0
+//E23292
+ ^LoadBalancingFunction=1$ lbCauseCodeS1TargetAcceptsOffload 0
+//E23293
+ ^LoadBalancingFunction=1$ lbCauseCodeX2SourceTriggersOffload 0
+/E23294
+ ^LoadBalancingFunction=1$ lbCauseCodeX2TargetAcceptsOffload 0
+//E23295
+ ^LoadBalancingFunction=1$ lbCeiling 600
+//E23296
+ ^LoadBalancingFunction=1$ lbDiffCaOffset 100
+//E23297
+ ^LoadBalancingFunction=1$ lbEUtranOffloadBackoffTime 60
+//E23298
+ ^LoadBalancingFunction=1$ lbHitRateEUtranAddThreshold 15
+//E23299
+ ^LoadBalancingFunction=1$ lbHitRateEUtranMeasUeIntensity 10
+//E23300
+ ^LoadBalancingFunction=1$ lbHitRateEUtranMeasUeThreshold 10
+//E23301
+ ^LoadBalancingFunction=1$ lbHitRateEUtranRemoveThreshold 2
+//E23306
+ ^LoadBalancingFunction=1$ lbMeasScalingLimit 30
+//E23307
+ ^LoadBalancingFunction=1$ lbRateOffsetCoefficient 320
+//E23308
+ ^LoadBalancingFunction=1$ lbRateOffsetLoadThreshold 500
+//E23309
+ ^LoadBalancingFunction=1$ lbThreshold 30
+//E23315
+ ^LoadBalancingFunction=1$ txPwrForOverlaidCellDetect 370
+
+
+#####===========Mbms/MbsfnArea===========##########
+//cr ENodeBFunction=1,Mbms=1
+//set ^Mbms=.*$ changeNotificationSIB13 true
+//set ^Mbms=.*$ mappingInfoSIB13 0
+//set ^Mbms=.*$ synchPeriodLength 593920
+//set ^Mbms=.*$ tMbmsAuditTimer 180
+//set ^MbmsService=.*$ syncSequenceLength 32
+//set ^MbsfnArea=.*$ administrativeState 0
+//set ^MbsfnArea=.*$ commonSFAllocPeriod 32
+//set ^MbsfnArea=.*$ mcchModificationPeriod 512
+//set ^MbsfnArea=.*$ mcchRepetitionPeriod 32
+//set ^MbsfnArea=.*$ nonMbsfnRegionLength 2
+//set ^MbsfnAreaCellRelation=.*$ isReservedCell false
+//set ^MceFunction=.*$ useM3dnsFormat false
+
+#=== MimoSleepFunction ===#
+//E23490
+ EUtranCellFDD=.*,MimoSleepFunction=1$ sleepEndTime 05:00
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ sleepEndTime 05:00
+//E23491
+ EUtranCellFDD=.*,MimoSleepFunction=1$ sleepMode 0
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ sleepMode 0
+//E23493
+ EUtranCellFDD=.*,MimoSleepFunction=1$ sleepStartTime 02:00
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ sleepStartTime 02:00
+//E23495
+ EUtranCellFDD=.*,MimoSleepFunction=1$ switchDownMonitorDurTimer 60
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ switchDownMonitorDurTimer 60
+//E23496
+ EUtranCellFDD=.*,MimoSleepFunction=1$ switchDownPrbThreshold 10
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ switchDownPrbThreshold 10
+//E23497
+ EUtranCellFDD=.*,MimoSleepFunction=1$ switchDownRrcConnThreshold 5
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ switchDownRrcConnThreshold 5
+//E23498
+ EUtranCellFDD=.*,MimoSleepFunction=1$ switchUpMonitorDurTimer 10
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ switchUpMonitorDurTimer 10
+//E23499
+ EUtranCellFDD=.*,MimoSleepFunction=1$ switchUpPrbThreshold 30
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ switchUpPrbThreshold 30
+//E23500
+ EUtranCellFDD=.*,MimoSleepFunction=1$ switchUpRrcConnThreshold 50
+ EUtranCellTDD=.*-1[123456],MimoSleepFunction=1$ switchUpRrcConnThreshold 50
+#========================================================#
+//deprecated//set ^OamAccessPoint=.*$ dscp 0
+//E23916
+ ^OamTrafficClass=.*$ dscp 16
+#========================================================#
+#=== TimerProfile ===#
+//E25374-E25375-E25376-E25377
+crn ENodeBFunction=1,TimerProfile=1
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+// add L17Q2
+crn ENodeBFunction=1,TimerProfile=2
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+// add L17Q2
+crn ENodeBFunction=1,TimerProfile=3
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+// add L17Q2
+crn ENodeBFunction=1,TimerProfile=4
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+// add L17Q2
+crn ENodeBFunction=1,TimerProfile=5
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+// add L17Q2
+crn ENodeBFunction=1,TimerProfile=6
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+// add L17Q2
+crn ENodeBFunction=1,TimerProfile=7
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+// add L17Q2
+crn ENodeBFunction=1,TimerProfile=8
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+// add L17Q2
+crn ENodeBFunction=1,TimerProfile=9
+tRelocOverall 15
+tRrcConnReest 1
+tRrcConnectionReconfiguration 6
+tWaitForRrcConnReest 6
+end
+
+#=== Paging ===#
+//E23933
+ ^Paging=1$ defaultPagingCycle 128
+//E23935
+ ^Paging=1$ maxNoOfPagingRecords 16
+/E23937
+ ^Paging=1$ nB 2
+//E23940
+ ^Paging=1$ noOfDefPagCyclPrim 1
+//E23942
+ ^Paging=1$ pagingDiscardTimer 2
+
+####ParameterChangeRequests/PmEventService/PmFlexCounterFilter####
+/E24030
+ ^PmEventService=.*$ cellTraceFileSize 1000
+//E24031
+ ^PmEventService=.*$ cellTraceHighPrioReserve 0
+//E24035
+ ^PmEventService=.*$ streamPortPmUeTrace 51543
+//E24052
+ ^PmEventService=.*$ totalCellTraceStorageSize 80000
+//E24053
+ ^PmEventService=.*$ totalEventStorageSize 100000
+//E24054
+ ^PmEventService=.*$ totalUeTraceStorageSize 16000
+//E24055
+ ^PmEventService=.*$ ueTraceFileSize 1000
+#=================================================#
+del ENodeBFunction=1,PmFlexCounterFilter=0
+del ENodeBFunction=1,PmFlexCounterFilter=1
+del ENodeBFunction=1,PmFlexCounterFilter=2
+wait 5
+cre ENodeBFunction=1,PmFlexCounterFilter=0
+cre ENodeBFunction=1,PmFlexCounterFilter=1
+cre ENodeBFunction=1,PmFlexCounterFilter=2
+
+
+//deprecated//set ^PmFlexCounterFilter=0$ ceLevelEnabled false
+//deprecated//set ^PmFlexCounterFilter=1$ ceLevelEnabled true
+//deprecated//set ^PmFlexCounterFilter=2$ ceLevelEnabled true
+
+//E24070-E24075-E24076-E24078-E24079-E24060-E24071-E24077-E24056-E24064-E24067-E24074
+ ^PmFlexCounterFilter=0$ pmFlexCounterFilterId 0
+ ^PmFlexCounterFilter=0$ spidFilterMax 1
+ ^PmFlexCounterFilter=0$ spidFilterMin 1
+ ^PmFlexCounterFilter=0$ ueCatFilterMax 0
+ ^PmFlexCounterFilter=0$ ueCatFilterMin 0
+ ^PmFlexCounterFilter=0$ ceLevelFilterEnabled false
+ ^PmFlexCounterFilter=0$ qciFilterEnabled false
+ ^PmFlexCounterFilter=0$ ueCatFilterEnabled true
+ ^PmFlexCounterFilter=0$ arpFilterEnabled false
+ ^PmFlexCounterFilter=0$ lcgFilterEnabled false
+ ^PmFlexCounterFilter=0$ plmnFilterEnabled false
+ ^PmFlexCounterFilter=0$ spidFilterEnabled false
+
+//E24061-E24062-E24070-E24075-E24076-E24078-E24079-E24060-E24071-E24077-E24056-E24064-E24067-E24074
+ ^PmFlexCounterFilter=1$ ceLevelFilterMax 1
+ ^PmFlexCounterFilter=1$ ceLevelFilterMin 0
+ ^PmFlexCounterFilter=1$ pmFlexCounterFilterId 1
+ ^PmFlexCounterFilter=1$ spidFilterMax 1
+ ^PmFlexCounterFilter=1$ spidFilterMin 1
+ ^PmFlexCounterFilter=1$ ueCatFilterMax 0
+ ^PmFlexCounterFilter=1$ ueCatFilterMin 0
+ ^PmFlexCounterFilter=1$ ceLevelFilterEnabled true
+ ^PmFlexCounterFilter=1$ qciFilterEnabled false
+ ^PmFlexCounterFilter=1$ ueCatFilterEnabled true
+ ^PmFlexCounterFilter=1$ arpFilterEnabled false
+ ^PmFlexCounterFilter=1$ lcgFilterEnabled false
+ ^PmFlexCounterFilter=1$ plmnFilterEnabled false
+ ^PmFlexCounterFilter=1$ spidFilterEnabled false
+
+//E24061-E24062-E24070-E24072-E24073-E24075-E24076-E24078-E24079-E24071-E24077-E24056-E24064-E24067-E24074-E24060
+ ^PmFlexCounterFilter=2$ ceLevelFilterMax 1
+ ^PmFlexCounterFilter=2$ ceLevelFilterMin 0
+ ^PmFlexCounterFilter=2$ pmFlexCounterFilterId 2
+ ^PmFlexCounterFilter=2$ qciFilterMax 9
+ ^PmFlexCounterFilter=2$ qciFilterMin 1
+ ^PmFlexCounterFilter=2$ spidFilterMax 1
+ ^PmFlexCounterFilter=2$ spidFilterMin 1
+ ^PmFlexCounterFilter=2$ ueCatFilterMax 0
+ ^PmFlexCounterFilter=2$ ueCatFilterMin 0
+ ^PmFlexCounterFilter=2$ qciFilterEnabled true
+ ^PmFlexCounterFilter=2$ ueCatFilterEnabled true
+ ^PmFlexCounterFilter=2$ arpFilterEnabled false
+ ^PmFlexCounterFilter=2$ lcgFilterEnabled false
+ ^PmFlexCounterFilter=2$ plmnFilterEnabled false
+ ^PmFlexCounterFilter=2$ spidFilterEnabled false
+ ^PmFlexCounterFilter=2$ ceLevelFilterEnabled true
+
+#=== PreschedulingProfile ===#
+//E24205
+ ^PreschedulingProfile=initial$ preschedulingDataSize 86
+//E24206
+ ^PreschedulingProfile=initial$ preschedulingDuration 1050
+//E24207
+ ^PreschedulingProfile=initial$ preschedulingPeriod 5
+
+#===QciProfileOperatorDefined===3
+//set ^QciProfileOperatorDefined=.*$ absPrioOverride 0
+//set ^QciProfileOperatorDefined=.*$ aqmMode 0
+//set ^QciProfileOperatorDefined=.*$ counterActiveMode false
+//set ^QciProfileOperatorDefined=.*$ dataFwdPerQciEnabled false
+//set ^QciProfileOperatorDefined=.*$ pdb 80
+//set ^QciProfileOperatorDefined=.*$ pdcpSNLength 12
+//set ^QciProfileOperatorDefined=.*$ qciACTuning 1000
+//set ^QciProfileOperatorDefined=.*$ qciSubscriptionQuanta 1
+//set ^QciProfileOperatorDefined=.*$ relativePriority 1
+//set ^QciProfileOperatorDefined=.*$ resourceAllocationStrategy 0
+//set ^QciProfileOperatorDefined=.*$ rlcMode 0
+//set ^QciProfileOperatorDefined=.*$ rohcEnabled false
+//set ^QciProfileOperatorDefined=.*$ schedulingAlgorithm 0
+//set ^QciProfileOperatorDefined=.*$ serviceType 0
+//set ^QciProfileOperatorDefined=.*$ srsAllocationStrategy 0
+
+#=== QciProfilePredefined ===#
+
+########################################################################
+//E24306
+ ^QciProfilePredefined=default$ absPrioOverride 0
+ ^QciProfilePredefined=qci1$ absPrioOverride 0
+ ^QciProfilePredefined=qci2$ absPrioOverride 0
+ ^QciProfilePredefined=qci3$ absPrioOverride 0
+ ^QciProfilePredefined=qci4$ absPrioOverride 0
+ ^QciProfilePredefined=qci5$ absPrioOverride 1
+ ^QciProfilePredefined=qci6$ absPrioOverride 0
+ ^QciProfilePredefined=qci7$ absPrioOverride 0
+ ^QciProfilePredefined=qci8$ absPrioOverride 0
+ ^QciProfilePredefined=qci9$ absPrioOverride 0
+
+//E24307
+ ^QciProfilePredefined=default$ aqmMode 0
+ ^QciProfilePredefined=qci1$ aqmMode 2
+ ^QciProfilePredefined=qci2$ aqmMode 0
+ ^QciProfilePredefined=qci3$ aqmMode 0
+ ^QciProfilePredefined=qci4$ aqmMode 0
+ ^QciProfilePredefined=qci5$ aqmMode 0
+ ^QciProfilePredefined=qci6$ aqmMode 0
+ ^QciProfilePredefined=qci7$ aqmMode 0
+ ^QciProfilePredefined=qci8$ aqmMode 0
+ ^QciProfilePredefined=qci9$ aqmMode 0
+
+//E24308
+ ^QciProfilePredefined=qci1$ counterActiveMode true
+ ^QciProfilePredefined=qci[2-9]$ counterActiveMode false
+
+//E24309
+ ^QciProfilePredefined=qci[1-9]$ dataFwdPerQciEnabled true
+
+//E24312
+ ^QciProfilePredefined=default$ dlMinBitRate 0
+ ^QciProfilePredefined=qci1$ dlMinBitRate 0
+ ^QciProfilePredefined=qci2$ dlMinBitRate 0
+ ^QciProfilePredefined=qci3$ dlMinBitRate 0
+ ^QciProfilePredefined=qci4$ dlMinBitRate 0
+ ^QciProfilePredefined=qci5$ dlMinBitRate 0
+ ^QciProfilePredefined=qci6$ dlMinBitRate 150
+ ^QciProfilePredefined=qci7$ dlMinBitRate 0
+ ^QciProfilePredefined=qci8$ dlMinBitRate 75
+ ^QciProfilePredefined=qci9$ dlMinBitRate 150
+
+//E24314
+ ^QciProfilePredefined=default$ drxPriority 0
+ ^QciProfilePredefined=qci1$ drxPriority 98
+ ^QciProfilePredefined=qci[2-9]$ drxPriority 0
+
+//E24315
+ ^QciProfilePredefined=default$ drxProfileRef DrxProfile=0
+ ^QciProfilePredefined=qci1$ drxProfileRef DrxProfile=1
+ ^QciProfilePredefined=qci[2-9]$ drxProfileRef DrxProfile=0
+
+//E24316
+ ^QciProfilePredefined=default$ dscp 0
+ ^QciProfilePredefined=qci1$ dscp 46
+ ^QciProfilePredefined=qci2$ dscp 34
+ ^QciProfilePredefined=qci3$ dscp 32
+ ^QciProfilePredefined=qci4$ dscp 24
+ ^QciProfilePredefined=qci5$ dscp 56
+ ^QciProfilePredefined=qci6$ dscp 0
+ ^QciProfilePredefined=qci7$ dscp 26
+ ^QciProfilePredefined=qci8$ dscp 0
+ ^QciProfilePredefined=qci9$ dscp 0
+
+//E24318
+ ^QciProfilePredefined=qci1$ inactivityTimerOffset 20
+ ^QciProfilePredefined=qci[2-9]$ inactivityTimerOffset 0
+
+//E24320
+ ^QciProfilePredefined=default$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=3
+ ^QciProfilePredefined=qci1$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=1
+ ^QciProfilePredefined=qci2$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=2
+ ^QciProfilePredefined=qci3$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=1
+ ^QciProfilePredefined=qci4$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=2
+ ^QciProfilePredefined=qci5$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=2
+ ^QciProfilePredefined=qci6$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=3
+ ^QciProfilePredefined=qci7$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=2
+ ^QciProfilePredefined=qci8$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=3
+ ^QciProfilePredefined=qci9$ logicalChannelGroupRef QciTable=default,LogicalChannelGroup=3
+
+//E24345
+ ^QciProfilePredefined=default$ pdbOffset 0
+ ^QciProfilePredefined=qci[1-9]$ pdbOffset 0
+
+//E24346
+ ^QciProfilePredefined=default$ pdcpSNLength 12
+ ^QciProfilePredefined=qci1$ pdcpSNLength 7
+ ^QciProfilePredefined=qci[2-9]$ pdcpSNLength 12
+
+//E24349
+ ^QciProfilePredefined=default$ qciACTuning 1000
+ ^QciProfilePredefined=qci1$ qciACTuning 650
+ ^QciProfilePredefined=qci[2-9]$ qciACTuning 1000
+
+//E24356
+ ^QciProfilePredefined=default$ rlcMode 0
+ ^QciProfilePredefined=qci1$ rlcMode 1
+ ^QciProfilePredefined=qci2$ rlcMode 1
+ ^QciProfilePredefined=qci3$ rlcMode 1
+ ^QciProfilePredefined=qci4$ rlcMode 0
+ ^QciProfilePredefined=qci5$ rlcMode 0
+ ^QciProfilePredefined=qci6$ rlcMode 0
+ ^QciProfilePredefined=qci7$ rlcMode 1
+ ^QciProfilePredefined=qci8$ rlcMode 0
+ ^QciProfilePredefined=qci9$ rlcMode 0
+
+//E24357
+ ^QciProfilePredefined=default$ rlcSNLength 10
+ ^QciProfilePredefined=qci1$ rlcSNLength 5
+ ^QciProfilePredefined=qci[2-9]$ rlcSNLength 10
+
+//E24358
+ ^QciProfilePredefined=qci[1-9]$ rlfPriority 1
+ ^QciProfilePredefined=default$ rlfProfileRef RlfProfile=1
+ ^QciProfilePredefined=qci[1-9]$ rlfProfileRef RlfProfile=1
+
+//E24360
+ ^QciProfilePredefined=default$ rohcEnabled false
+ ^QciProfilePredefined=qci1$ rohcEnabled true
+ ^QciProfilePredefined=qci[2-9]$ rohcEnabled false
+
+//E24362
+ ^QciProfilePredefined=default$ serviceType 0
+ ^QciProfilePredefined=qci1$ serviceType 1
+ ^QciProfilePredefined=qci[2-9]$ serviceType 0
+
+
+ ^QciProfilePredefined=qci[1-9]$ timerPriority 0
+
+//E24367
+ QciProfilePredefined=qci1$ timerProfileRef TimerProfile=1
+ QciProfilePredefined=qci2$ timerProfileRef TimerProfile=2
+ QciProfilePredefined=qci3$ timerProfileRef TimerProfile=3
+ QciProfilePredefined=qci4$ timerProfileRef TimerProfile=4
+ QciProfilePredefined=qci5$ timerProfileRef TimerProfile=5
+ QciProfilePredefined=qci6$ timerProfileRef TimerProfile=6
+ QciProfilePredefined=qci7$ timerProfileRef TimerProfile=7
+ QciProfilePredefined=qci8$ timerProfileRef TimerProfile=8
+ QciProfilePredefined=qci9$ timerProfileRef TimerProfile=9
+
+
+ ^QciProfilePredefined=qci[1-9]$ ulMaxHARQTxQci 5
+
+ ^QciProfilePredefined=qci[1-9]$ ulMaxWaitingTime 0
+
+//E24370
+ ^QciProfilePredefined=default$ ulMinBitRate 0
+
+//E24313
+ ^QciProfilePredefined=default$ dlResourceAllocationStrategy 0
+ ^QciProfilePredefined=qci1$ dlResourceAllocationStrategy 0
+ ^QciProfilePredefined=qci2$ dlResourceAllocationStrategy 1
+ ^QciProfilePredefined=qci3$ dlResourceAllocationStrategy 1
+ ^QciProfilePredefined=qci4$ dlResourceAllocationStrategy 1
+ ^QciProfilePredefined=qci5$ dlResourceAllocationStrategy 0
+ ^QciProfilePredefined=qci6$ dlResourceAllocationStrategy 1
+ ^QciProfilePredefined=qci7$ dlResourceAllocationStrategy 1
+ ^QciProfilePredefined=qci8$ dlResourceAllocationStrategy 1
+ ^QciProfilePredefined=qci9$ dlResourceAllocationStrategy 1
+
+//E24348
+ ^QciProfilePredefined=default$ qci 0
+ ^QciProfilePredefined=qci1$ qci 1
+ ^QciProfilePredefined=qci2$ qci 2
+ ^QciProfilePredefined=qci3$ qci 3
+ ^QciProfilePredefined=qci4$ qci 4
+ ^QciProfilePredefined=qci5$ qci 5
+ ^QciProfilePredefined=qci6$ qci 6
+ ^QciProfilePredefined=qci7$ qci 7
+ ^QciProfilePredefined=qci8$ qci 8
+ ^QciProfilePredefined=qci9$ qci 9
+
+//E24351
+ ^QciProfilePredefined=qci1$ qciSubscriptionQuanta 1
+ ^QciProfilePredefined=qci2$ qciSubscriptionQuanta 1
+ ^QciProfilePredefined=qci3$ qciSubscriptionQuanta 1
+ ^QciProfilePredefined=qci4$ qciSubscriptionQuanta 1
+ ^QciProfilePredefined=qci5$ qciSubscriptionQuanta 1
+ ^QciProfilePredefined=qci6$ qciSubscriptionQuanta 100
+ ^QciProfilePredefined=qci7$ qciSubscriptionQuanta 1
+ ^QciProfilePredefined=qci8$ qciSubscriptionQuanta 50
+ ^QciProfilePredefined=qci9$ qciSubscriptionQuanta 100
+
+//E24344
+ ^QciProfilePredefined=default$ pdb 0
+ ^QciProfilePredefined=qci1$ pdb 300
+ ^QciProfilePredefined=qci2$ pdb 150
+ ^QciProfilePredefined=qci3$ pdb 50
+ ^QciProfilePredefined=qci4$ pdb 300
+ ^QciProfilePredefined=qci5$ pdb 100
+ ^QciProfilePredefined=qci6$ pdb 300
+ ^QciProfilePredefined=qci7$ pdb 100
+ ^QciProfilePredefined=qci8$ pdb 300
+ ^QciProfilePredefined=qci9$ pdb 300
+
+//E24322-E24323-E24324-E24325-E24326-E24327-E24328-E24329-E24330-E24331-E24332-E24333-E24334-E24337-E24340
+ ^QciProfilePredefined=QCI[1-9]$ measReportConfigParams a1ThresholdRsrpPrimOffset=0,a1ThresholdRsrpSecOffset=0,a1ThresholdRsrqPrimOffset=0,a1ThresholdRsrqSecOffset=0,a2ThresholdRsrpPrimOffset=0,a2ThresholdRsrpSecOffset=0,a2ThresholdRsrqPrimOffset=0,a2ThresholdRsrqSecOffset=0,a5Threshold1RsrpOffset=0,a5Threshold1RsrqOffset=0,a5Threshold2RsrpOffset=0,a5Threshold2RsrqOffset=0,b2Threshold1RsrpCdma2000Offset=0,b2Threshold1RsrqCdma2000Offset=0,b2Threshold2Cdma2000Offset=0
+
+//E24347
+ ^QciProfilePredefined=default$ priority 10
+ ^QciProfilePredefined=qci1$ priority 2
+ ^QciProfilePredefined=qci2$ priority 4
+ ^QciProfilePredefined=qci3$ priority 3
+ ^QciProfilePredefined=qci4$ priority 5
+ ^QciProfilePredefined=qci5$ priority 1
+ ^QciProfilePredefined=qci6$ priority 6
+ ^QciProfilePredefined=qci7$ priority 7
+ ^QciProfilePredefined=qci8$ priority 8
+ ^QciProfilePredefined=qci9$ priority 9
+
+//E24352
+ ^QciProfilePredefined=default$ relativePriority 1
+ ^QciProfilePredefined=qci1$ relativePriority 1
+ ^QciProfilePredefined=qci2$ relativePriority 5
+ ^QciProfilePredefined=qci3$ relativePriority 1
+ ^QciProfilePredefined=qci4$ relativePriority 5
+ ^QciProfilePredefined=qci5$ relativePriority 1
+ ^QciProfilePredefined=qci6$ relativePriority 200
+ ^QciProfilePredefined=qci7$ relativePriority 5
+ ^QciProfilePredefined=qci8$ relativePriority 100
+ ^QciProfilePredefined=qci9$ relativePriority 200
+
+//E24354
+ ^QciProfilePredefined=default$ resourceAllocationStrategy 0
+ ^QciProfilePredefined=qci1$ resourceAllocationStrategy 1
+ ^QciProfilePredefined=qci2$ resourceAllocationStrategy 0
+ ^QciProfilePredefined=qci3$ resourceAllocationStrategy 0
+ ^QciProfilePredefined=qci4$ resourceAllocationStrategy 0
+ ^QciProfilePredefined=qci5$ resourceAllocationStrategy 1
+ ^QciProfilePredefined=qci6$ resourceAllocationStrategy 1
+ ^QciProfilePredefined=qci7$ resourceAllocationStrategy 0
+ ^QciProfilePredefined=qci8$ resourceAllocationStrategy 1
+ ^QciProfilePredefined=qci9$ resourceAllocationStrategy 1
+
+//E24355
+ ^QciProfilePredefined=default$ resourceType 0
+ ^QciProfilePredefined=qci1$ resourceType 1
+ ^QciProfilePredefined=qci2$ resourceType 1
+ ^QciProfilePredefined=qci3$ resourceType 1
+ ^QciProfilePredefined=qci4$ resourceType 1
+ ^QciProfilePredefined=qci5$ resourceType 0
+ ^QciProfilePredefined=qci6$ resourceType 0
+ ^QciProfilePredefined=qci7$ resourceType 0
+ ^QciProfilePredefined=qci8$ resourceType 0
+ ^QciProfilePredefined=qci9$ resourceType 0
+
+//E24361
+ ^QciProfilePredefined=default$ schedulingAlgorithm 0
+ ^QciProfilePredefined=qci1$ schedulingAlgorithm 6
+ ^QciProfilePredefined=qci2$ schedulingAlgorithm 0
+ ^QciProfilePredefined=qci3$ schedulingAlgorithm 0
+ ^QciProfilePredefined=qci4$ schedulingAlgorithm 0
+ ^QciProfilePredefined=qci5$ schedulingAlgorithm 0
+ ^QciProfilePredefined=qci6$ schedulingAlgorithm 4
+ ^QciProfilePredefined=qci7$ schedulingAlgorithm 0
+ ^QciProfilePredefined=qci8$ schedulingAlgorithm 4
+ ^QciProfilePredefined=qci9$ schedulingAlgorithm 4
+
+//E24363
+ ^QciProfilePredefined=default$ srsAllocationStrategy 0
+ ^QciProfilePredefined=qci1$ srsAllocationStrategy 0
+ ^QciProfilePredefined=qci2$ srsAllocationStrategy 0
+ ^QciProfilePredefined=qci3$ srsAllocationStrategy 0
+ ^QciProfilePredefined=qci4$ srsAllocationStrategy 0
+ ^QciProfilePredefined=qci5$ srsAllocationStrategy 0
+ ^QciProfilePredefined=qci6$ srsAllocationStrategy 1
+ ^QciProfilePredefined=qci7$ srsAllocationStrategy 0
+ ^QciProfilePredefined=qci8$ srsAllocationStrategy 1
+ ^QciProfilePredefined=qci9$ srsAllocationStrategy 1
+
+
+
+#=== RATFreqPrio ===#
+
+cr ENodeBFunction=1,SubscriberProfileID=1,RATFreqPrio=1
+wait 3
+//E24395-E24396-E24397-E24398-E24399
+ ^RATFreqPrio=.*$ bandClassPrioListCDMA1xRtt cdma1xRttBandClass=0,cellReselectionPriority=-1000,csFallbackPrio=-1000,csFallbackPrioEC=-1000,freqCdma=-1000
+//E24402-E24403-E24404-E24405
+ ^RATFreqPrio=.*$ bandClassPrioListCDMA2000 cellReselectionPriority=-1000,connectedModeMobilityPrio=-1000,freqCdma=-1000,hrpdBandClass=0
+//E24417-E24420-E24421-E24424
+ ^RATFreqPrio=.*$ freqPrioListEUTRA arfcnValueEUtranDl=-1000,cellReselectionPriority=-1000,connectedModeMobilityPrio=-1000,voicePrio=-1000
+//E24437
+ ^RATFreqPrio=.*$ spidList -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000 -1000
+//E24438
+ ^RATFreqPrio=.*$ t320 30
+
+#=== Rcs ===#
+//E24475
+ ^Rcs=.*$ rlcDlDeliveryFailureAction 1
+//E24476
+ ^Rcs=.*$ tInactivityTimer 10
+//E24477
+ ^Rcs=.*$ tInactivityTimerBr 5
+
+#=== ReportConfigA1Prim ===#
+//E24488
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA1Prim=1$ a1ThresholdRsrpPrim -111
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA1Prim=1$ a1ThresholdRsrpPrim -111
+//E24489
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA1Prim=1$ a1ThresholdRsrqPrim -195
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA1Prim=1$ a1ThresholdRsrqPrim -195
+//E24492
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA1Prim=1$ timeToTriggerA1Prim 128
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA1Prim=1$ timeToTriggerA1Prim 128
+
+#=== ReportConfigA4 ===#
+//E24498
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA4=1$ a4ThresholdRsrp -140
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA4=1$ a4ThresholdRsrp -140
+//E24499
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA4=1$ a4ThresholdRsrq -195
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA4=1$ a4ThresholdRsrq -195
+//E24500
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA4=1$ hysteresisA4 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA4=1$ hysteresisA4 10
+//E24502
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA4=1$ timeToTriggerA4 640
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA4=1$ timeToTriggerA4 640
+//E24503
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA4=1$ triggerQuantityA4 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA4=1$ triggerQuantityA4 0
+
+#=== ReportConfigA1Sec ===#
+//E24493
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA1Sec=.*$ a1ThresholdRsrpSec -136
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA1Sec=.*$ a1ThresholdRsrpSec -136
+//E24494
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA1Sec=.*$ a1ThresholdRsrqSec -120
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA1Sec=.*$ a1ThresholdRsrqSec -120
+//E24497
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA1Sec=.*$ timeToTriggerA1Sec 128
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA1Sec=.*$ timeToTriggerA1Sec 128
+
+#=== ReportConfigA5Anr ===#
+//E24514
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA5Anr=1$ a5Threshold1RsrpAnrDelta 1
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA5Anr=1$ a5Threshold1RsrpAnrDelta 1
+//E24515
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA5Anr=1$ a5Threshold1RsrqAnrDelta 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA5Anr=1$ a5Threshold1RsrqAnrDelta 10
+//E24516
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA5Anr=1$ a5Threshold2RsrpAnrDelta 1
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA5Anr=1$ a5Threshold2RsrpAnrDelta 1
+//E24517
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA5Anr=1$ a5Threshold2RsrqAnrDelta 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA5Anr=1$ a5Threshold2RsrqAnrDelta 10
+//E24518
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA5Anr=1$ hysteresisA5 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA5Anr=1$ hysteresisA5 10
+//E24520
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA5Anr=1$ timeToTriggerA5 640
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA5Anr=1$ timeToTriggerA5 640
+
+#=== ReportConfigB2Cdma2000 ===#
+//E24538
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma2000=1$ b2Threshold1Rsrp -140
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma2000=1$ b2Threshold1Rsrp -140
+//E24539
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma2000=1$ b2Threshold1Rsrq -195
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma2000=1$ b2Threshold1Rsrq -195
+//E24540
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma2000=1$ b2Threshold2Cdma2000 -75
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma2000=1$ b2Threshold2Cdma2000 -75
+//E24541
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma2000=1$ hysteresisB2 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma2000=1$ hysteresisB2 10
+//E24544
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma2000=1$ timeToTriggerB2 640
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma2000=1$ timeToTriggerB2 640
+//E24546
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma2000=1$ triggerQuantityB2 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma2000=1$ triggerQuantityB2 0
+
+#=== ReportConfigB2Cdma20001xRtt ===#
+//E24547
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ b2Threshold1Rsrp -140
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ b2Threshold1Rsrp -140
+//E24548
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ b2Threshold1Rsrq -195
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ b2Threshold1Rsrq -195
+//E24549
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ b2Threshold2Cdma20001xRtt -75
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ b2Threshold2Cdma20001xRtt -75
+//E24550
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ hysteresisB2 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ hysteresisB2 10
+//E24553
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ timeToTriggerB2 640
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ timeToTriggerB2 640
+//E24555
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ triggerQuantityB2 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigB2Cdma20001xRtt=1$ triggerQuantityB2 0
+
+#=== ReportConfigCsfbCdma2000 ===#
+//E24596
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigCsfbCdma2000=1$ hysteresis 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigCsfbCdma2000=1$ hysteresis 10
+//E24598
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigCsfbCdma2000=1$ thresholdCdma20001xRtt -75
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigCsfbCdma2000=1$ thresholdCdma20001xRtt -75
+//E24599
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigCsfbCdma2000=1$ timeToTrigger 40
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigCsfbCdma2000=1$ timeToTrigger 40
+
+################################################################
+##  700M Cell Parameter(Target cell is earfcndl=9410)
+################################################################
+//E22251-E22252-E22253
+ EUtranCellFDD=.*-[024],EUtranFreqRelation=5900$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[024],EUtranFreqRelation=41040$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[024],EUtranFreqRelation=9410$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[024],EUtranFreqRelation=40842$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+
+//E21676-E24504-E24505-E24506-E24507
+ ^EUtranCellFDD=.*-[024]$ ulSCellPriority 2
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrp -115
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrq -160
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrp -115
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrq -160
+
+//E24756-E24761-E24762-E24766-E24769-E24770-E24786
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigSearch=1$ a1a2SearchThresholdRsrp -113
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrp -122
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrq -190
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA1A2SearchRsrp 20
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrp 0
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrq 0
+ EUtranCellFDD=.*-[024],UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA2Critical 512
+
+################################################################
+##  800M Cell Parameter(Target cell is earfcndl=5900)
+################################################################
+//E21667-E21670-E21673-E21678-E21556-E21557
+ EUtranCellFDD=.*-[135]$ ulConfigurableFrequencyStart 0
+ EUtranCellFDD=.*-[135]$ ulFrequencyAllocationProportion 100
+ EUtranCellFDD=.*-[135]$ ulInterferenceManagementActive true
+ EUtranCellFDD=.*-[135]$ ulSrsEnable true
+ EUtranCellFDD=.*-[135]$ puschMaxNrOfPrbsPerUe 100
+ EUtranCellFDD=.*-[135]$ pucchOverdimensioning 0
+//E22251-E22252-E22253
+ EUtranCellFDD=.*-[135],EUtranFreqRelation=5900$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[135],EUtranFreqRelation=41040$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[135],EUtranFreqRelation=9410$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[135],EUtranFreqRelation=40842$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+
+//E21676-E24504-E24505-E24506-E24507
+ ^EUtranCellFDD=.*-[135]$ ulSCellPriority 3
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrp -115
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrq -160
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrp -115
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrq -160
+
+//E24756-E24761-E24762-E24766-E24769-E24770-E24786
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigSearch=1$ a1a2SearchThresholdRsrp -113
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrp -140
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrq -195
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA1A2SearchRsrp 20
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrp 150
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrq 150
+ EUtranCellFDD=.*-[135],UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA2Critical 5120
+
+################################################################
+##  2.1G Cell Parameter(Target cell is earfcndl=100|150)
+################################################################
+//E22251-E22252-E22253
+ EUtranCellFDD=.*-[678],EUtranFreqRelation=5900$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[678],EUtranFreqRelation=41040$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[678],EUtranFreqRelation=9410$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellFDD=.*-[678],EUtranFreqRelation=40842$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+
+################################################################
+##  2.1G Cell Parameter(Target cell is earfcndl=150)
+################################################################
+//E21667-E21670-E21673-E21678-E21556-E21557
+for $mo in b1cell_10m
+$ldn = ldn($mo)
+  set $ldn ulConfigurableFrequencyStart 0
+  set $ldn ulFrequencyAllocationProportion 100
+  set $ldn ulInterferenceManagementActive true
+  set $ldn ulSrsEnable true
+  set $ldn puschMaxNrOfPrbsPerUe 100
+  set $ldn pucchOverdimensioning 0
+
+//E21676-E24504-E24505-E24506-E24507  
+  set $ldn ulSCellPriority 1
+  set $ldn,UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrp -113
+  set $ldn,UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrq -120
+  set $ldn,UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrp -113
+  set $ldn,UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrq -120
+
+//E24756-E24761-E24762-E24766-E24769-E24770-E24786
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ a1a2SearchThresholdRsrp -111
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrp -122
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrq -190
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ hysteresisA1A2SearchRsrp 20
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrp 0
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrq 0
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA2Critical 512
+done
+
+
+################################################################
+##  2.1G Cell Parameter(Target cell is earfcndl=100)
+################################################################
+//E21667-E21670-E21673-E21678-E21556-E21557-E22314
+for $mo in b1cell_20m
+$ldn = ldn($mo)
+
+  set $ldn ulConfigurableFrequencyStart 25
+  set $ldn ulFrequencyAllocationProportion 52
+  set $ldn ulInterferenceManagementActive false
+  set $ldn ulSrsEnable false
+  set $ldn puschMaxNrOfPrbsPerUe 24
+  set $ldn pucchOverdimensioning 24
+
+//E21676-E24504-E24505-E24506-E24507  
+  set $ldn ulSCellPriority 1
+  set $ldn,UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrp -113
+  set $ldn,UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrq -120
+  set $ldn,UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrp -113
+  set $ldn,UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrq -120
+
+//E24756-E24761-E24762-E24766-E24769-E24770-E24786
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ a1a2SearchThresholdRsrp -111
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrp -122
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrq -190
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ hysteresisA1A2SearchRsrp 20
+  
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrp 0
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrq 0
+  set $ldn,UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA2Critical 512
+done
+
+
+################################################################
+##  3.5G Cell Parameter(Target cell is earfcndl=42892)
+################################################################
+//E24504-E24505-E24506-E24507
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrp -112
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrq -195
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrp -125
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrq -195
+  
+//E24756-E24761-E24762-E24766-E24769-E24770-E24786
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigSearch=1$ a1a2SearchThresholdRsrp -112
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrp -114
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrq -160
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA1A2SearchRsrp 0
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrp 0
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrq 0
+ EUtranCellTDD=.*-1[246],UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA2Critical 128
+
+################################################################
+##  3.5G Cell Parameter(Target cell is earfcndl=43090)
+################################################################
+//E24504-E24505-E24506-E24507
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrp -112
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigA5=1$ a5Threshold1Rsrq -195
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrp -125
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigA5=1$ a5Threshold2Rsrq -195
+
+//E24756-E24761-E24762-E24766-E24769-E24770-E24786
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigSearch=1$ a1a2SearchThresholdRsrp -112
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrp -114
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigSearch=1$ a2CriticalThresholdRsrq -160
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA1A2SearchRsrp 0
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrp 0
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigSearch=1$ hysteresisA2CriticalRsrq 0
+ EUtranCellTDD=.*-1[135],UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA2Critical 128
+
+################################################################
+##  3.5G Cell Parameter(Target cell is earfcndl=(42892$|43090$)
+################################################################
+//E22251-E22252-E22253-E22271-E22246
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=41040$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=9410$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=40842$ blackListEntry physicalLayerCellIdGroup=167,physicalLayerSubCellId=0,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=1,range=1;physicalLayerCellIdGroup=167,physicalLayerSubCellId=2,range=1
+
+###======================================####
+//E24511
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA5=1$ timeToTriggerA5 128
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA5=1$ timeToTriggerA5 128
+//E24513
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigA5=1$ triggerQuantityA5 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigA5=1$ triggerQuantityA5 0
+###======================================####
+//E24783
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA1Search 128
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA1Search 128
+//E24790
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA2Search 320
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSearch=1$ timeToTriggerA2Search 320
+
+###========RfBranch============####
+//E24831
+ ^RfBranch=.*$ dlTrafficDelay -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+//E24839
+ ^RfBranch=.*$ ulTrafficDelay -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+
+
+#=== ReportConfigEUtraBadCovPrim ===#
+//E24614
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBadCovPrim=1$ a2ThresholdRsrpPrim -115
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBadCovPrim=1$ a2ThresholdRsrpPrim -115
+//E24615
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBadCovPrim=1$ a2ThresholdRsrqPrim -195
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBadCovPrim=1$ a2ThresholdRsrqPrim -195
+//E24618
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBadCovPrim=1$ timeToTriggerA2Prim 128
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBadCovPrim=1$ timeToTriggerA2Prim 128
+//E24619
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBadCovPrim=1$ triggerQuantityA2Prim 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBadCovPrim=1$ triggerQuantityA2Prim 0
+
+#=== ReportConfigEUtraBadCovSec ===#
+//E24620
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBadCovSec=1$ a2ThresholdRsrpSec -140
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBadCovSec=1$ a2ThresholdRsrpSec -140
+//E24621
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBadCovSec=1$ a2ThresholdRsrqSec -195
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBadCovSec=1$ a2ThresholdRsrqSec -195
+//E24624
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBadCovSec=1$ timeToTriggerA2Sec 128
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBadCovSec=1$ timeToTriggerA2Sec 128
+//E24625
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBadCovSec=1$ triggerQuantityA2Sec 1
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBadCovSec=1$ triggerQuantityA2Sec 1
+
+#=== ReportConfigEUtraBestCell ===#
+//E24626
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBestCell=1$ a3offset 15
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBestCell=1$ a3offset 15
+//E24629
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBestCell=1$ timeToTriggerA3 256
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBestCell=1$ timeToTriggerA3 256
+//E24631
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBestCell=1$ triggerQuantityA3 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBestCell=1$ triggerQuantityA3 0
+
+#=== ReportConfigEUtraBestCellAnr ===#
+//E24632
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBestCellAnr=1$ a3offsetAnrDelta 3
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBestCellAnr=1$ a3offsetAnrDelta 3
+//E24633
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBestCellAnr=1$ hysteresisA3 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBestCellAnr=1$ hysteresisA3 10
+//E24635
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraBestCellAnr=1$ timeToTriggerA3 640
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraBestCellAnr=1$ timeToTriggerA3 640
+
+#=== ReportConfigEUtraIFBestCell ===#
+//E24642
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraIFBestCell=1$ a3offset 15
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraIFBestCell=1$ a3offset 15
+//E24646
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraIFBestCell=1$ timeToTriggerA3 256
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraIFBestCell=1$ timeToTriggerA3 256
+//E24648
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraIFBestCell=1$ triggerQuantityA3 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraIFBestCell=1$ triggerQuantityA3 0
+
+#=== ReportConfigEUtraInterFreqLb ===#
+//E24649
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraInterFreqLb=1$ a5Threshold1Rsrp -44
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraInterFreqLb=1$ a5Threshold1Rsrp -44
+//E24650
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraInterFreqLb=1$ a5Threshold2Rsrp -111
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraInterFreqLb=1$ a5Threshold2Rsrp -111
+//E24651
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraInterFreqLb=1$ a5Threshold2Rsrq -195
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraInterFreqLb=1$ a5Threshold2Rsrq -195
+
+#=== ReportConfigEUtraInterFreqMbms ===#
+//E24654
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraInterFreqMbms=1$ a5ThresholdRsrp -44
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraInterFreqMbms=1$ a5ThresholdRsrp -44
+//E24655
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigEUtraInterFreqMbms=1$ hysteresisA5 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigEUtraInterFreqMbms=1$ hysteresisA5 10
+
+#=== ReportConfigEUtraIntraFreqPm ===#
+//set ReportConfigEUtraIntraFreqPm=.*$ a1ThresholdRsrpPm -140
+//set ReportConfigEUtraIntraFreqPm=.*$ a1ThresholdRsrqPm -195
+//set ReportConfigEUtraIntraFreqPm=.*$ a2ThresholdRsrpPm -140
+//set ReportConfigEUtraIntraFreqPm=.*$ a2ThresholdRsrqPm -195
+//set ReportConfigEUtraIntraFreqPm=.*$ a3OffsetPm 5
+//set ReportConfigEUtraIntraFreqPm=.*$ a3ReportOnLeavePm false
+//set ReportConfigEUtraIntraFreqPm=.*$ a4ThresholdRsrpPm -140
+//set ReportConfigEUtraIntraFreqPm=.*$ a4ThresholdRsrqPm -195
+//set ReportConfigEUtraIntraFreqPm=.*$ a5ThresholdRsrpPm1 -140
+//set ReportConfigEUtraIntraFreqPm=.*$ a5ThresholdRsrpPm2 -140
+//set ReportConfigEUtraIntraFreqPm=.*$ a5ThresholdRsrqPm1 -195
+//set ReportConfigEUtraIntraFreqPm=.*$ a5ThresholdRsrqPm2 -195
+//set ReportConfigEUtraIntraFreqPm=.*$ hysteresisPm 10
+//set ReportConfigEUtraIntraFreqPm=.*$ maxReportCellsPm 4
+//set ReportConfigEUtraIntraFreqPm=.*$ measSelectionEUtraPm 0
+//set ReportConfigEUtraIntraFreqPm=.*$ reportIntervalPm 7
+//set ReportConfigEUtraIntraFreqPm=.*$ reportQuantityPm 1
+//set ReportConfigEUtraIntraFreqPm=.*$ timeToTriggerPm 640
+//set ReportConfigEUtraIntraFreqPm=.*$ triggerQuantityPm 0
+
+#=== ReportConfigSCellA1A2 ===#
+//E24734
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ a1a2ThresholdRsrp -126
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ a1a2ThresholdRsrp -126
+//E24735
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ a1a2ThresholdRsrpBidir -88
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ a1a2ThresholdRsrpBidir -88
+//E24736
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ a1a2ThresholdRsrq -140
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ a1a2ThresholdRsrq -140
+//E24737
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ hysteresisA1A2Rsrp 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ hysteresisA1A2Rsrp 10
+//E24739
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ hysteresisA1A2RsrpBidirectional 20
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ hysteresisA1A2RsrpBidirectional 20
+//E24740
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ hysteresisA1A2Rsrq 20
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ hysteresisA1A2Rsrq 20
+//E24742
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ timeToTriggerA1 256
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ timeToTriggerA1 256
+//E24743
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ timeToTriggerA2 320
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ timeToTriggerA2 320
+//E24744
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA1A2=1$ triggerQuantityA1A2 1
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA1A2=1$ triggerQuantityA1A2 1
+
+#=== ReportConfigSCellA4 ===#
+//E24745
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA4=1$ a4ThresholdRsrp -140
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA4=1$ a4ThresholdRsrp -140
+//E24746
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA4=1$ a4ThresholdRsrq -195
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA4=1$ a4ThresholdRsrq -195
+//E24747
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA4=1$ hysteresisA4 10
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA4=1$ hysteresisA4 10
+//E24749
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA4=1$ timeToTriggerA4 640
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA4=1$ timeToTriggerA4 640
+//E24750
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA4=1$ triggerQuantityA4 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA4=1$ triggerQuantityA4 0
+
+#=== ReportConfigSCellA6 ===#
+//E24751
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA6=1$ a6offset 15
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA6=1$ a6offset 15
+//E24754
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA6=1$ timeToTriggerA6 512
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA6=1$ timeToTriggerA6 512
+//E24755
+ EUtranCellFDD=.*,UeMeasControl=1,ReportConfigSCellA6=1$ triggerQuantityA6 0
+ EUtranCellTDD=.*-1[123456],UeMeasControl=1,ReportConfigSCellA6=1$ triggerQuantityA6 0
+
+#=== RetSubUnit ===#
+//set ^RetSubUnit=.*$ iuantAntennaBearing -1000
+//set ^RetSubUnit=.*$ iuantAntennaOperatingBand -1000
+//set ^RetSubUnit=.*$ iuantAntennaOperatingGain -1000 -1000 -1000 -1000
+//set ^RetSubUnit=.*$ maxTilt -1000
+//set ^RetSubUnit=.*$ minTilt -1000
+
+#=== RfPort ===#
+//E24842
+ get administrativeState 1
+//set ^RfPort=.*$ vswrSupervisionActive
+//E24855
+ ^RfPort=.*$ vswrSupervisionSensitivity -1
+
+#=== RiLink ===#
+//E24868
+ ^RiLink=.*$ transportType 0
+/E24899
+ ^Router=.*$ ttl 64
+
+#=== Rrc ===#
+//E24910
+ ^Rrc=1$ t300 1000
+//E24913
+ ^Rrc=1$ t301 1000
+//E24916
+ ^Rrc=1$ t304 1000
+//E24917
+ ^Rrc=1$ t311 5000
+//E24919
+ ^Rrc=1$ t320 30
+//E24920
+ ^Rrc=1$ tRrcConnReest 1
+//E24921
+ ^Rrc=1$ tRrcConnectionReconfiguration 6
+//E24922
+ ^Rrc=1$ tWaitForRrcConnReest 6
+
+#=== RlfProfile ===#
+//E24883
+ ^RlfProfile=0$ n310 1
+ ^RlfProfile=10$ n310 1
+ ^RlfProfile=11$ n310 1
+ ^RlfProfile=12$ n310 1
+ ^RlfProfile=13$ n310 1
+ ^RlfProfile=14$ n310 1
+ ^RlfProfile=15$ n310 1
+ ^RlfProfile=16$ n310 1
+ ^RlfProfile=17$ n310 1
+ ^RlfProfile=18$ n310 1
+ ^RlfProfile=1$ n310 1
+ ^RlfProfile=2$ n310 1
+ ^RlfProfile=3$ n310 1
+ ^RlfProfile=4$ n310 1
+ ^RlfProfile=5$ n310 1
+ ^RlfProfile=6$ n310 1
+ ^RlfProfile=7$ n310 1
+ ^RlfProfile=8$ n310 1
+ ^RlfProfile=9$ n310 1
+
+//E24884
+ ^RlfProfile=0$ n311 1
+ ^RlfProfile=10$ n311 1
+ ^RlfProfile=11$ n311 1
+ ^RlfProfile=12$ n311 1
+ ^RlfProfile=13$ n311 1
+ ^RlfProfile=14$ n311 1
+ ^RlfProfile=15$ n311 1
+ ^RlfProfile=16$ n311 1
+ ^RlfProfile=17$ n311 1
+ ^RlfProfile=18$ n311 1
+ ^RlfProfile=1$ n311 1
+ ^RlfProfile=2$ n311 1
+ ^RlfProfile=3$ n311 1
+ ^RlfProfile=4$ n311 1
+ ^RlfProfile=5$ n311 1
+ ^RlfProfile=6$ n311 1
+ ^RlfProfile=7$ n311 1
+ ^RlfProfile=8$ n311 1
+ ^RlfProfile=9$ n311 1
+
+//E24887
+ ^RlfProfile=0$ t301 400
+ ^RlfProfile=10$ t301 400
+ ^RlfProfile=11$ t301 400
+ ^RlfProfile=12$ t301 400
+ ^RlfProfile=13$ t301 400
+ ^RlfProfile=14$ t301 400
+ ^RlfProfile=15$ t301 400
+ ^RlfProfile=16$ t301 400
+ ^RlfProfile=17$ t301 400
+ ^RlfProfile=18$ t301 400
+ ^RlfProfile=1$ t301 1000
+ ^RlfProfile=2$ t301 400
+ ^RlfProfile=3$ t301 400
+ ^RlfProfile=4$ t301 400
+ ^RlfProfile=5$ t301 400
+ ^RlfProfile=6$ t301 400
+ ^RlfProfile=7$ t301 400
+ ^RlfProfile=8$ t301 400
+ ^RlfProfile=9$ t301 400
+
+//E24888
+ ^RlfProfile=0$ t310 1000
+ ^RlfProfile=10$ t310 1000
+ ^RlfProfile=11$ t310 1000
+ ^RlfProfile=12$ t310 1000
+ ^RlfProfile=13$ t310 1000
+ ^RlfProfile=14$ t310 1000
+ ^RlfProfile=15$ t310 1000
+ ^RlfProfile=16$ t310 1000
+ ^RlfProfile=17$ t310 1000
+ ^RlfProfile=18$ t310 1000
+ ^RlfProfile=1$ t310 1000
+ ^RlfProfile=2$ t310 1000
+ ^RlfProfile=3$ t310 1000
+ ^RlfProfile=4$ t310 1000
+ ^RlfProfile=5$ t310 1000
+ ^RlfProfile=6$ t310 1000
+ ^RlfProfile=7$ t310 1000
+ ^RlfProfile=8$ t310 1000
+ ^RlfProfile=9$ t310 1000
+
+//E24889
+ ^RlfProfile=0$ t311 5000
+ ^RlfProfile=10$ t311 5000
+ ^RlfProfile=11$ t311 5000
+ ^RlfProfile=12$ t311 5000
+ ^RlfProfile=13$ t311 5000
+ ^RlfProfile=14$ t311 5000
+ ^RlfProfile=15$ t311 5000
+ ^RlfProfile=16$ t311 5000
+ ^RlfProfile=17$ t311 5000
+ ^RlfProfile=18$ t311 5000
+ ^RlfProfile=1$ t311 5000
+ ^RlfProfile=2$ t311 5000
+ ^RlfProfile=3$ t311 5000
+ ^RlfProfile=4$ t311 5000
+ ^RlfProfile=5$ t311 5000
+ ^RlfProfile=6$ t311 5000
+ ^RlfProfile=7$ t311 5000
+ ^RlfProfile=8$ t311 5000
+ ^RlfProfile=9$ t311 5000
+
+#========================================================#
+//set ^SctpEndpoint localIpAddress Transport=1,Router=LTE,InterfaceIPv4=1,AddressIPv4=1
+#=== SecurityHandling ===#
+//E25066
+ ^SecurityHandling=1$ cipheringAlgoPrio 2 1 0
+//E25067
+ ^SecurityHandling=1$ countWrapSupervisionActive true
+//E25068
+ ^SecurityHandling=1$ integrityProtectAlgoPrio 2 1
+//E25069
+ ^SecurityHandling=1$ rbIdSupervisionActive true
+
+#=== SctpProfile ===#
+//E24977
+ ^SctpProfile=.*$ alphaIndex 3
+//E24979
+ ^SctpProfile=.*$ betaIndex 2
+//E24980
+ ^SctpProfile=.*$ bundlingActivated true
+//E24983
+ ^SctpProfile=.*$ cookieLife 180
+//E24984
+ ^SctpProfile=.*$ dscp 56
+//E24985
+ ^SctpProfile=.*$ hbMaxBurst 1
+//E24987
+ ^SctpProfile=.*$ heartbeatInterval 2000
+//E24988
+ ^SctpProfile=.*$ incCookieLife 30
+//E24991
+ ^SctpProfile=.*$ initialHeartbeatInterval 200
+//E24992
+ ^SctpProfile=.*$ maxActivateThr 65535
+//E24993
+ ^SctpProfile=.*$ maxBurst 4
+//E24994
+ ^SctpProfile=.*$ maxInStreams 11
+//E24995
+ ^SctpProfile=.*$ maxInitRt 8
+//E24996
+ ^SctpProfile=.*$ maxOutStreams 2
+//E24998
+ ^SctpProfile=.*$ maxSctpPduSize 556
+//E24999
+ ^SctpProfile=.*$ maxShutdownRt 5
+//E25000
+ ^SctpProfile=.*$ minActivateThr 1
+//E25002
+ ^SctpProfile=.*$ noSwitchback true
+//E25004
+ ^SctpProfile=.*$ primaryPathAvoidance true
+//E25007
+ ^SctpProfile=.*$ sackTimer 1
+ ^SctpProfile=.*$ thrTransmitBufferCongCeased 85
+//E25010
+sget ^SctpProfile=1$ ^pathMaxRtx$ > $pathMaxRtx
+sget ^SctpProfile=1$ ^assocMaxRtx$ > $assocMaxRtx
+sget ^SctpProfile=1$ ^maxRto$ > $maxRto
+sget ^SctpProfile=1$ ^initRto$ > $initRto
+sget ^SctpProfile=1$ ^minRto$ > $minRto
+//set ^SctpProfile=1$ potentiallyFailedMaxRtx 0
+if $pathMaxRtx > 5
+//E25003
+  set ^SctpProfile=1$ pathMaxRtx 4
+//E24978
+  set ^SctpProfile=1$ assocMaxRtx 5
+else if $assocMaxRtx < 4
+//E24978
+  set ^SctpProfile=1$ assocMaxRtx 5
+//E25003
+  set ^SctpProfile=1$ pathMaxRtx 4
+else
+  set ^SctpProfile=1$ assocMaxRtx 5
+//E25003
+//E24978
+  set ^SctpProfile=1$ pathMaxRtx 4
+fi
+
+if $initRto >= 200
+//E25001
+  set ^SctpProfile=1$ minRto 100
+//E24990
+  set ^SctpProfile=1$ initRto 200
+//E24997
+  set ^SctpProfile=1$ maxRto 200
+else if $initRto <= 100
+//E24997
+  set ^SctpProfile=1$ maxRto 200
+//E24990
+  set ^SctpProfile=1$ initRto 200
+//E25001
+  set ^SctpProfile=1$ minRto 100
+else
+//E25001
+//E25001
+  set ^SctpProfile=1$ minRto 100
+//E24990
+  set ^SctpProfile=1$ initRto 200
+//E24997
+  set ^SctpProfile=1$ maxRto 200
+fi
+//deprecated//set ^SectorCarrier=.*$ dlPimCandidate false
+//deprecated//set ^SectorCarrier=.*$ partOfSectorPower 100
+//E25030
+ ^SectorCarrier=.*$ prsEnabled true
+//E25031
+ ^SectorCarrier=.*$ radioTransmitPerformanceMode 0
+//E25038
+ ^SectorCarrier=.*$ txPowerPersistentLock false
+//deprecated//set ^SectorCarrier=.*$ ulPimCancellationMode 0
+//E25050
+ ^SectorEquipmentFunction=..?$ administrativeState 1
+//E25058
+ ^SectorEquipmentFunction=..?$ mixedModeRadio false
+
+#=== SignalingRadioBearer ===#
+
+//E25095
+ ^SignalingRadioBearer=1$ dlMaxRetxThreshold 32
+//E25101
+ ^SignalingRadioBearer=1$ ulMaxRetxThreshold 32
+
+##======SnmpTargetV1=======##
+
+//set ^SnmpTargetV1=.*$ administrativeState 0
+//E25121
+ ^SnmpTargetV2C=.*$ administrativeState 1
+//E25123
+ ^SnmpTargetV2C=.*$ informRetryCount 1
+//E25124
+ ^SnmpTargetV2C=.*$ informTimeout 300
+//E25125
+ ^SnmpTargetV2C=.*$ isMibWritable true
+//set ^SnmpTargetV3=.*$ administrativeState 0
+//set ^SnmpTargetV3Dtls=.*$ administrativeState 0
+
+#=== Synchronization ===#
+//E25280
+ ^Synchronization=1$ fixedPosition true
+//E25282
+ ^Synchronization=1$ telecomStandard 1
+
+#=== TermPointToENB ===#
+//set ^TermPointToENB=.*$ administrativeState 1
+//bl TermPointToENB
+//set ^TermPointToENB=.*$ ipAddress 0.0.0.0
+//set ^TermPointToENB=.*$ ipv6Address ::
+
+//set ^TermPointToLbm=.*$ termPointToLbmId RDN
+
+
+#=== TermPointToMme ===#
+//set ^TermPointToMme=.*$ administrativeState 1
+//set ^TermPointToMme=.*$ ipAddress2 0.0.0.0
+//E25318
+ ^TermPointToMme=.*$ ipv6Address1 ::
+//E25319
+ ^TermPointToMme=.*$ ipv6Address2 ::
+
+//set ^TermPointToMmeM3=.*$ administrativeState 0
+//set ^TermPointToMmeM3=.*$ ipAddress1 0.0.0.0
+//set ^TermPointToMmeM3=.*$ ipAddress2 0.0.0.0
+//set ^TermPointToMmeM3=.*$ ipv6Address1 ::
+//set ^TermPointToMmeM3=.*$ ipv6Address2 ::
+
+//E25361
+ ^TimeSettings=.*$ gpsToUtcLeapSeconds 0
+//E25365
+ ^TimeSyncIO=.*$ adminPortDirection 1
+//E25367
+ ^TimeSyncIO=.*$ compensationDelay 0
+
+#=== TmaSubUnit ===#
+//set ^TmaSubUnit=.*$ iuantAntennaBearing -1000
+//set ^TmaSubUnit=.*$ iuantAntennaInstalledMechanicalTilt -1000
+//set ^TmaSubUnit=.*$ iuantAntennaOperatingBand -1000
+//set ^TmaSubUnit=.*$ iuantAntennaOperatingGain -1000, -1000, -1000, -1000
+
+#=== UeMeasControl ===#
+//E25541
+ EUtranCellFDD=.*,UeMeasControl=.*$ allowReleaseQci1 false
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ allowReleaseQci1 false
+//E25543
+ EUtranCellFDD=.*,UeMeasControl=.*$ checkA2SearchLevel true
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ checkA2SearchLevel true
+//E25544
+ EUtranCellFDD=.*,UeMeasControl=.*$ csfbHoTargetSearchTimer 500
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ csfbHoTargetSearchTimer 500
+//E25547
+ EUtranCellFDD=.*,UeMeasControl=.*$ filterCoefficientEUtraRsrp 4
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ filterCoefficientEUtraRsrp 4
+//E25548
+ EUtranCellFDD=.*,UeMeasControl=.*$ filterCoefficientEUtraRsrq  4
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ filterCoefficientEUtraRsrq  4
+//E25552
+ EUtranCellFDD=.*,UeMeasControl=.*$ maxMeasCdma20001xRtt 3
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ maxMeasCdma20001xRtt 3
+//E25553
+ EUtranCellFDD=.*,UeMeasControl=.*$ maxMeasCdma2000eHrpd 5
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ maxMeasCdma2000eHrpd 5
+//E25554
+ EUtranCellFDD=.*,UeMeasControl=.*$ maxMeasEUtraOther 5
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ maxMeasEUtraOther 5
+//E25556
+ EUtranCellFDD=.*,UeMeasControl=.*$ maxMeasInterFreqEUtra 7
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ maxMeasInterFreqEUtra 7
+//E25559
+ EUtranCellFDD=.*,UeMeasControl=.*$ maxNoMeasReportsInact 1
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ maxNoMeasReportsInact 1
+//E25564
+ EUtranCellFDD=.*,UeMeasControl=.*$ servOrPrioIFHoTimer 1000
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ servOrPrioIFHoTimer 1000
+//E25567
+ EUtranCellFDD=.*,UeMeasControl=.*$ ueMeasurementsActive true
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ ueMeasurementsActive true
+//E25568
+ EUtranCellFDD=.*,UeMeasControl=.*$ ueMeasurementsActiveCDMA2000 false
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ ueMeasurementsActiveCDMA2000 false
+//E25569
+ EUtranCellFDD=.*,UeMeasControl=.*$ ueMeasurementsActiveCDMA20001xRtt false
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ ueMeasurementsActiveCDMA20001xRtt false
+//E25571
+ EUtranCellFDD=.*,UeMeasControl=.*$ ueMeasurementsActiveIF true
+ EUtranCellTDD=.*-1[123456],UeMeasControl=.*$ ueMeasurementsActiveIF true
+
+//set ^UlCompGroup=.*$ administrativeState 0
+//set ^UpgradePackage=.*$ password anonymous
+//set ^VlanPort=.*$ isTagged false
+//set ^VlanPort=.*$ vlanId 1
+
+
+##############################
+##Common parameter setting
+##############################
+//E21785-E21787
+ ^EUtranCellTDD=.*-1[123456]$ acBarringForMoData acBarringFactor=95
+ ^EUtranCellTDD=.*-1[123456]$ acBarringForMoData acBarringTime=8
+//E21789-E21791
+ ^EUtranCellTDD=.*-1[123456]$ acBarringForMoSignalling acBarringFactor=95
+ ^EUtranCellTDD=.*-1[123456]$ acBarringForMoSignalling acBarringTime=8
+//E21792
+ ^EUtranCellTDD=.*-1[123456]$ acBarringInfoPresent true
+//E21796-E21797
+ ^EUtranCellTDD=.*-1[123456]$ acBarringPresence acBarringForMoDataPresence=2,acBarringForMoSignPresence=2
+//E21798
+ ^EUtranCellTDD=.*-1[123456]$ acBarringSkipForMmtelVideo true
+//E21800
+ ^EUtranCellTDD=.*-1[123456]$ acBarringSkipForSms true
+//E21799
+ ^EUtranCellTDD=.*-1[123456]$ acBarringSkipForMmtelVoice true
+//E21825
+ ^EUtranCellTDD=.*-1[123456]$ arpPriorityLevelForSPIFHo false false false false false false false false false false false false false false false false
+//E21840
+ ^EUtranCellTDD=.*-1[123456]$ cellSubscriptionCapacity 16500
+//E21844-E21845-E21846-E21851-E21852
+ ^EUtranCellTDD=.*-1[123456]$ changeNotification changeNotificationSIB13=false,changeNotificationSIB15=false,changeNotificationSIB16=false,changeNotificationSIB6=false,changeNotificationSIB7=false
+//E21873
+ ^EUtranCellTDD=.*-1[123456]$ dl256QamEnabled false
+//E21880
+ ^EUtranCellTDD=.*-1[123456]$ dlInterferenceManagementActive true
+//E21881
+ ^EUtranCellTDD=.*-1[123456]$ drxActive true
+//E21882
+ ^EUtranCellTDD=.*-1[123456]$ dummyCdmaBandClass 3
+//E21868
+ ^EUtranCellTDD=.*-1[123456]$ covTriggerdBlindHoAllowed false
+//set ^EUtranCellTDD=.*-1[123456]$ externalCdma20001xRttCellRef Cdma2000Network=1,Cdma2000FreqBand=0,Cdma2000Freq=40,ExternalCdma20001xRttCell=DummyBTS_299
+//E21909
+ ^EUtranCellTDD=.*-1[123456]$ frameStartOffset subFrameOffset=0
+//E21925
+ ^EUtranCellTDD=.*-1[123456]$ initCdma2000SysTimeType 1
+//E21935
+ ^EUtranCellTDD=.*-1[123456]$ lbEUtranAcceptOffloadThreshold 1600
+E21936
+ ^EUtranCellTDD=.*-1[123456]$ lbEUtranCellOffloadCapacity 16500
+//E21941
+ ^EUtranCellTDD=.*-1[123456]$ lbabDecr 20
+//E21942
+ ^EUtranCellTDD=.*-1[123456]$ lbabIncr 40
+//E21943
+ ^EUtranCellTDD=.*-1[123456]$ lbabPeriod 60
+//E21944
+ ^EUtranCellTDD=.*-1[123456]$ lbabThreshRejectRateHigh 100
+//E21945
+ ^EUtranCellTDD=.*-1[123456]$ lbabThreshRejectRateLow 10
+//E21946
+ ^EUtranCellTDD=.*-1[123456]$ lbabThreshTimeHigh 10
+//E21947
+ ^EUtranCellTDD=.*-1[123456]$ lbabThreshTimeLow 30
+
+//E21951-E21952-E21957-E21958-E21959-E21962
+//set ^EUtranCellTDD=.*-[124578]$ mappingInfo mappingInfoSIB10=5,mappingInfoSIB11=6,mappingInfoSIB3=2,mappingInfoSIB4=2,mappingInfoSIB5=3,mappingInfoSIB8=4
+
+//E21951-E21952-E21957-E21958-E21959-E21962
+ ^EUtranCellTDD=.*-1[123456]$ mappingInfo mappingInfoSIB10=5,mappingInfoSIB11=6,mappingInfoSIB3=2,mappingInfoSIB4=2,mappingInfoSIB5=3,mappingInfoSIB8=0
+
+//E21983
+ ^EUtranCellTDD=.*-1[123456]$ mobCtrlAtPoorCovActive true
+//E21984
+ ^EUtranCellTDD=.*-1[123456]$ modificationPeriodCoeff 4
+//noOfChannelSelectionSets
+ ^EUtranCellTDD=.*-1[123456]$ noOfChannelSelectionSets 6
+//E21989
+ ^EUtranCellTDD=.*-1[123456]$ noOfPucchCqiUsers 320
+//E21994
+ ^EUtranCellTDD=.*-1[123456]$ noOfPucchSrUsers 320
+//E22009
+ ^EUtranCellTDD=.*-1[123456]$ pZeroNominalPusch -105
+//E22004
+ ^EUtranCellTDD=.*-1[123456]$ otdoaSuplActive true
+//E22007
+ ^EUtranCellTDD=.*-1[123456]$ pMaxServingCell 23
+//E22008
+ ^EUtranCellTDD=.*-1[123456]$ pZeroNominalPucch -110
+//E22025
+ ^EUtranCellTDD=.*-1[123456]$ pdcchCfiMode 5
+//E22049
+ ^EUtranCellTDD=.*-1[123456]$ prsConfigIndex 14
+//E22058
+ ^EUtranCellTDD=.*-1[123456]$ puschPwrOffset64qam 5
+//E22060
+ ^EUtranCellTDD=.*-1[123456]$ qQualMinOffset 1
+//E22064
+ ^EUtranCellTDD=.*-1[123456]$ qRxLevMinOffset 2
+//E22077
+ ^EUtranCellTDD=.*-1[123456]$ servOrPrioTriggeredErabAction 1
+//E22093
+ ^EUtranCellTDD=.*-1[123456]$ specialSubframePattern 6
+//E22110
+ ^EUtranCellTDD=.*-1[123456]$ subframeAssignment 2
+//E22083-E22086-E22087
+ ^EUtranCellTDD=.*-1[123456]$ siPeriodicity siPeriodicitySI2=32,siPeriodicitySI5=8,siPeriodicitySI6=8
+//E22112-E22113-E22114-E22117-E22118-E22119-E22120-E22121-E22122-E22123-E22124-E22125-E22126-E22127
+ ^EUtranCellTDD=.*-1[123456]$ systemInformationBlock3 nCellChangeHigh=10,nCellChangeMedium=4,qHyst=2,sIntraSearchv920Active=true,sNonIntraSearchv920Active=true,tEvaluation=30,tHystNormal=30,threshServingLowQ=1000
+//E22137-E22141
+ ^EUtranCellTDD=.*-1[123456]$ systemInformationBlock8 searchWindowSizeCdma=13,tReselectionCdmaHrpd=7
+//E22146
+ ^EUtranCellTDD=.*-1[123456]$ tUeBlockingTimer 50
+//E22160
+ ^EUtranCellTDD=.*-1[123456]$ ulInterferenceManagementActive true
+//set ^EUtranCellTDD=.*-1[123456]$ administrativeState 0
+//E21820
+ ^EUtranCellTDD=.*-1[123456]$ ailgRef AirIfLoadProfile=1
+//E21833
+ ^EUtranCellTDD=.*-1[123456]$ cellBarred 1
+
+//E21937
+ ^EUtranCellTDD=.*-1[123456]$ lbEUtranTriggerOffloadThreshold 1600
+//E22164
+ ^EUtranCellTDD=.*-1[123456]$ ulSrsEnable true
+//E22168
+ ^EUtranCellTDD=.*-1[123456]$ uncertSemiMajor 8
+//E22169
+ ^EUtranCellTDD=.*-1[123456]$ uncertSemiMinor 8
+
+
+//set ^ExternalEUtranCellTDD=.*$ activePlmnList mcc=441,mnc=10,mncLength=2;mcc=440,mnc=50,mncLength=2;mcc=440,mnc=51,mncLength=2
+//move to 28 script//E22678
+//move to 28 script//set ^ExternalEUtranCellTDD=.*$ lbEUtranCellOffloadCapacity 16500
+//deprecated//set ^ExternalEUtranCellTDD=.*$ csgPhysCellId 1000
+//deprecated//set ^ExternalEUtranCellTDD=.*$ csgPhysCellIdRange 1
+//set ^ExternalEUtranCellTDD=.*$ pciConflictCell cellId=0;enbId=0;mcc=1,mnc=1,mncLength=2
+//set ^ExternalEUtranCellTDD=.*$ pciDetectingCell cellId=0;enbId=0;mcc=1,mnc=1,mncLength=2
+
+
+##700M cell 10M (9410/27410)parameter##
+//E21490
+ ^EUtranCellFDD=.*-[024]$ networkSignallingValue 17
+
+//E21490
+##800M cell10M(5900/23900) parameter##
+ ^EUtranCellFDD=.*-[135]$ networkSignallingValue 1
+
+//E21490
+##2G cell 10M(150/18150)&20M(100/18100) parameter##
+ ^EUtranCellFDD=.*-[678]$ networkSignallingValue 5
+
+#=== EUtranFreqRelation ===#
+##band42(42892/43090)
+//E22150
+ ^EUtranCellTDD=.*-1[123456]$ timePhaseMaxDeviationTddIndex 0
+  
+##band41(40842/41040/)
+//B41////E22150
+//B41////set ^EUtranCellTDD=.*-[124578]$ timePhaseMaxDeviationTddIndex 1
+  
+//E22288-E22289-E22290
+ EUtranCellFDD=.*,EUtranFreqRelation=4900 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellFDD=.*,EUtranFreqRelation=5900 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellFDD=.*,EUtranFreqRelation=9410 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellFDD=.*,EUtranFreqRelation=100 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=2,lbA5Threshold2RsrqOffset=95,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=2,lbA5Threshold2RsrqOffset=95,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellFDD=.*,EUtranFreqRelation=150 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=2,lbA5Threshold2RsrqOffset=95,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=2,lbA5Threshold2RsrqOffset=95,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellFDD=.*,EUtranFreqRelation=41040 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellFDD=.*,EUtranFreqRelation=42892 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellFDD=.*,EUtranFreqRelation=40842 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellFDD=.*,EUtranFreqRelation=43090 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=4900 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=5900 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=9410 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=75,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=100 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=2,lbA5Threshold2RsrqOffset=95,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=2,lbA5Threshold2RsrqOffset=95,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=150 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=2,lbA5Threshold2RsrqOffset=95,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=2,lbA5Threshold2RsrqOffset=95,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=41040 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=42892 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=40842 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=43090 eutranFreqToQciProfileRelation lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=1,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci1;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci2;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci3;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci4;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci5;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci6;lbA5Threshold2RsrpOffset=0,lbA5Threshold2RsrqOffset=0,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci7;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci8;lbA5Threshold2RsrpOffset=1,lbA5Threshold2RsrqOffset=55,lbQciProfileHandling=0,qciProfileRef=ENodeBFunction=1,QciTable=default,QciProfilePredefined=qci9
+
+//E22307
+ EUtranCellFDD=.*,EUtranFreqRelation=.*$ pMax 23
+ EUtranCellTDD=.*-1[123456],EUtranFreqRelation=.*$ pMax 23
+
+#================================================#
+//E22260
+ ^EUtranFreqRelation=.*$ caTriggeredRedirectionActive true
+
+//set ^EUtranFreqRelation=100$ eutranFrequencyRef EUtranFrequency=100
+//set ^EUtranFreqRelation=150$ eutranFrequencyRef EUtranFrequency=150
+//set ^EUtranFreqRelation=5900$ eutranFrequencyRef EUtranFrequency=5900
+//set ^EUtranFreqRelation=9410$ eutranFrequencyRef EUtranFrequency=9410
+//set ^EUtranFreqRelation=40842$ eutranFrequencyRef EUtranFrequency=40842
+//set ^EUtranFreqRelation=41040$ eutranFrequencyRef EUtranFrequency=41040
+//set ^EUtranFreqRelation=43090$ eutranFrequencyRef EUtranFrequency=43090
+//set ^EUtranFreqRelation=42892$ eutranFrequencyRef EUtranFrequency=42892
+
+##===========EUtranFreqRelation=========##
+
+##Band41(b41cell_upper) earfcn (41040$)##
+//E22162
+//B41//set ^EUtranCellTDD=.*-[147]$ ulSCellPriority 3
+
+##Band41(b41cell_lower) earfcn (40842$)##
+//E22162
+//B41//set ^EUtranCellTDD=.*-[258]$ ulSCellPriority 3
+
+##Band42(b42cell_upper) earfcn (43090$)##
+//E22162
+ ^EUtranCellTDD=.*-1[135]$ ulSCellPriority 3
+
+##Band42(b42cell_lower) earfcn (42892$)##
+//E22162
+ ^EUtranCellTDD=.*-1[246]$ ulSCellPriority 3
+
+##=========== EUtranCellFDD ===========##
+//E21280-E21281-E21282
+ ^EUtranCellFDD=.*$ acBarringForCsfb acBarringFactor=95,acBarringForSpecialAC=false false false false false,acBarringTime=64
+//E21283
+ ^EUtranCellFDD=.*$ acBarringForEmergency false
+//E21286-E21287
+ ^EUtranCellFDD=.*$ acBarringForMoData acBarringFactor=95,acBarringForSpecialAC=false false false false false,acBarringTime=8
+//E21289-E21290-E21291
+ ^EUtranCellFDD=.*$ acBarringForMoSignalling acBarringFactor=95,acBarringForSpecialAC=false false false false false,acBarringTime=8
+//E21292
+ ^EUtranCellFDD=.*$ acBarringInfoPresent true
+//E21294-E21295-E21296-E21297
+ ^EUtranCellFDD=.*$ acBarringPresence acBarringForCsfbPresence=0,acBarringForEmergPresence=0,acBarringForMoDataPresence=2,acBarringForMoSignPresence=2
+//E21298
+ ^EUtranCellFDD=.*$ acBarringSkipForMmtelVideo true
+//E21299
+ ^EUtranCellFDD=.*$ acBarringSkipForMmtelVoice true
+//E21300
+ ^EUtranCellFDD=.*$ acBarringSkipForSms true
+//E21306
+ ^EUtranCellFDD=.*$ adaptiveCfiHoProhibit 0
+
+//E22046-E21546
+ ^EUtranCellFDD=.*-[024]$ primaryPlmnReserved true
+ ^EUtranCellFDD=.*-[135678]$ primaryPlmnReserved false
+ ^EUtranCellTDD=.*-1[123456]$ primaryPlmnReserved false
+//set ^EUtranCellFDD=.*$ additionalPlmnAlarmSupprList false,false,false,false,false
+//set ^EUtranCellFDD=.*$ administrativeState 0
+//E21316
+ ^EUtranCellFDD=.*$ advCellSupAction 0
+//set ^EUtranCellFDD=.*$ advCellSupSensitivity 0
+//E21320
+ ^EUtranCellFDD=.*$ ailgRef AirIfLoadProfile=1
+//E21321
+ ^EUtranCellFDD=.*$ allocThrPucchFormat1 50
+//E21322
+ ^EUtranCellFDD=.*$ allocTimerPucchFormat1 50
+//E21323
+ ^EUtranCellFDD=.*$ alpha 10
+//set ^EUtranCellFDD=.*$ altitude 0
+//E21325
+ ^EUtranCellFDD=.*$ arpPriorityLevelForSPIFHo false false false false false false false false false false false false false false false false
+//E21332
+ ^EUtranCellFDD=.*$ cceDynUeAdmCtrlOverloadThr 600
+//E21333
+ ^EUtranCellFDD=.*$ cceDynUeAdmCtrlRetDiffThr 500
+//E21334
+ ^EUtranCellFDD=.*$ cellBarred 1
+//set ^EUtranCellFDD=.*$ beamWeightSet16Tr 0
+//set ^EUtranCellFDD=.*$ bsrThreshold 0
+//set ^EUtranCellFDD=.*$ caPrioThreshold 300
+
+#########################################################
+//E21331
+ ^EUtranCellFDD=.*-[135]$ catm1SupportEnabled true
+
+//E21331
+for $mo in b11cell
+$ldn = ldn($mo)
+  set $ldn catm1SupportEnabled false
+done
+
+//E21331
+ ^EUtranCellFDD=.*-[024]$ catm1SupportEnabled false
+
+//E21331
+ ^EUtranCellFDD=.*-[678]$ catm1SupportEnabled false
+
+//E21331
+//set ^EUtranCellTDD=.*-[124578]$ catm1SupportEnabled false
+
+//E21331
+ ^EUtranCellTDD=.*-1[123456]$ catm1SupportEnabled false
+#=========================================#
+for $mo in cellF_10m
+$ldn = ldn($mo)
+//E21341
+  set $ldn cellSubscriptionCapacity 20000
+//E21439
+  set $ldn lbEUtranCellOffloadCapacity 20000
+done
+#=========================================#
+for $mo in cellF_20m
+$ldn = ldn($mo)
+//E21341
+  set $ldn cellSubscriptionCapacity 40000
+//E21439
+  set $ldn lbEUtranCellOffloadCapacity 40000
+done
+#=========================================#
+//move to 28 script//for $mo in ext_cellF_10m
+//move to 28 script//$ldn = ldn($mo)
+//move to 28 script////E22616
+//move to 28 script//  set $ldn lbEUtranCellOffloadCapacity 20000
+//move to 28 script//done
+#=========================================#
+//move to 28 script//for $mo in ext_cellF_20m
+//move to 28 script//$ldn = ldn($mo)
+//move to 28 script////E22616
+//move to 28 script//  set $ldn lbEUtranCellOffloadCapacity 40000
+//move to 28 script//done
+#============================================#
+
+//set ^EUtranCellFDD=.*$ cellDownlinkCaCapacity 0
+//set ^EUtranCellFDD=.*$ cellRange 15
+//E21342
+ ^EUtranCellFDD=.*$ cfraEnable true
+//E21344-E21345-E21346-E21347-E21348-E21349-E21350-E21351-E21352-E21353-E21354
+ ^EUtranCellFDD=.*$ changeNotification changeNotificationSIB1=true,changeNotificationSIB13=false,changeNotificationSIB15=false,changeNotificationSIB16=false,changeNotificationSIB2=true,changeNotificationSIB3=true,changeNotificationSIB4=true,changeNotificationSIB5=true,changeNotificationSIB6=false,changeNotificationSIB7=false,changeNotificationSIB8=true
+//E21355
+ ^EUtranCellFDD=.*$ channelSelectionSetSize 2
+//E21356
+ ^EUtranCellFDD=.*$ cioLowerLimitAdjBySon -3
+//E21357
+ ^EUtranCellFDD=.*$ cioUpperLimitAdjBySon 4
+//E21358
+ ^EUtranCellFDD=.*$ clusteredPuschMprFactor 100
+//E21367
+ ^EUtranCellFDD=.*$ commonSrPeriodicity 10
+//E21368
+ ^EUtranCellFDD=.*$ confidence 100
+//E21369
+ ^EUtranCellFDD=.*$ covTriggerdBlindHoAllowed false
+//E21370
+ ^EUtranCellFDD=.*$ crsGain 300
+//set ^EUtranCellFDD=.*$ csiRsConfigType8TxFDD 0
+//E21372
+ ^EUtranCellFDD=.*$ deallocThrPucchFormat1 100
+//E21373
+ ^EUtranCellFDD=.*$ deallocTimerPucchFormat1 6000
+//E21374
+ ^EUtranCellFDD=.*$ dl256QamEnabled false
+ ^EUtranCellFDD=.*$ dlBlerTargetEnabled false
+//set ^EUtranCellFDD=.*$ dlChannelBandwidth 10000
+//E21378
+ ^EUtranCellFDD=.*$ dlConfigurableFrequencyStart 0
+//set ^EUtranCellFDD=.*$ dlDynUeAdmCtrlOverloadThr 600
+ ^EUtranCellFDD=.*$ dlDynUeAdmCtrlRetDiffThr 500
+//E21381
+ ^EUtranCellFDD=.*$ dlFrequencyAllocationProportion 100
+//E21382
+ ^EUtranCellFDD=.*$ dlInterferenceManagementActive true
+//E21383
+ ^EUtranCellFDD=.*$ dlInternalChannelBandwidth 0
+//E21384
+ ^EUtranCellFDD=.*$ drxActive true
+//E21385
+ ^EUtranCellFDD=.*$ dummyCdmaBandClass 3
+//Unique//set EUtranCellFDD=.*,Cdma2000FreqBandRelation=.*,Cdma2000CellRelation=.*$ externalCdma2000CellRef
+//set ^EUtranCellFDD=.*$ dynUeAdmCtrlEnabled false
+//set ^EUtranCellFDD=.*$ dynUeAdmCtrlFilterConst 3000
+//set ^EUtranCellFDD=.*$ dynUlResourceAllocEnabled false
+###################################################################
+//E21390
+ EUtranCellFDD=.*-[135] eDrxAllowed true
+
+//E21390
+for $mo in b11cell
+$ldn = ldn($mo)
+  set $ldn eDrxAllowed false
+done
+
+//E21390
+ ^EUtranCellFDD=.*-[024]$ eDrxAllowed false
+
+//E21390
+ ^EUtranCellFDD=.*-[678]$ eDrxAllowed false
+
+//E21390
+//B41//set ^EUtranCellTDD=.*-[124578]$ eDrxAllowed false
+
+//E21390
+ ^EUtranCellTDD=.*-1[123456]$ eDrxAllowed false
+
+###############################################################
+
+//set ^EUtranCellFDD=.*$ emergencyAreaId -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+//E21398
+ ^EUtranCellFDD=.*$ enableServiceSpecificHARQ false
+//E21408-E21409
+ ^EUtranCellFDD=.*$ eutranCellPolygon cornerLatitude=0,cornerLongitude=0
+//E21410
+ ^EUtranCellFDD=.*$ expectedMaxNoOfUsersInCell -1
+//E21413
+ ^EUtranCellFDD=.*$ frameStartOffset subFrameOffset=0
+//E21419
+ ^EUtranCellFDD=.*$ highSpeedUEActive false
+//E21420
+ ^EUtranCellFDD=.*$ highestSupportedCeLevelBr 1
+//E21428
+ ^EUtranCellFDD=.*$ incrPrioServingFreqActive false
+//E21429
+ ^EUtranCellFDD=.*$ initCdma2000SysTimeType 1
+//E21430
+ ^EUtranCellFDD=.*$ initialBufferSizeDefault 86
+//E21434
+ ^EUtranCellFDD=.*$ isDlOnly false
+//E21435
+ ^EUtranCellFDD=.*$ lastModification 0
+//E21436
+ ^EUtranCellFDD=.*$ lastSchedLinkAdaptEnabled true
+//set ^EUtranCellFDD=.*$ latitude 0
+//E21438
+ ^EUtranCellFDD=.*$ lbEUtranAcceptOffloadThreshold 1600
+//E21440
+ ^EUtranCellFDD=.*$ lbEUtranTriggerOffloadThreshold 1600
+//E21440
+ ^EUtranCellFDD=.*$ lbabDecr 20
+//E21445
+ ^EUtranCellFDD=.*$ lbabIncr 40
+//E21446
+ ^EUtranCellFDD=.*$ lbabPeriod 60
+//E21447
+ ^EUtranCellFDD=.*$ lbabThreshRejectRateHigh 100
+//E21448
+ ^EUtranCellFDD=.*$ lbabThreshRejectRateLow 10
+//E21449
+ ^EUtranCellFDD=.*$ lbabThreshTimeHigh 10
+//E21450
+ ^EUtranCellFDD=.*$ lbabThreshTimeLow 30
+//set ^EUtranCellFDD=.*$ longitude 0
+//E21454-E21455-E21456-E21458-E21459-E21460-E21461-E21462-E21463-E21464-E21465
+ ^EUtranCellFDD=.*$ mappingInfo mappingInfoSIB10=5,mappingInfoSIB11=6,mappingInfoSIB12=0,mappingInfoSIB15=0,mappingInfoSIB16=0,mappingInfoSIB3=2,mappingInfoSIB4=2,mappingInfoSIB5=3,mappingInfoSIB6=0,mappingInfoSIB7=0,mappingInfoSIB8=4
+//E21473
+ ^EUtranCellFDD=.*$ mappingInfoBr mappingInfoSIB3=1
+//E21483
+ ^EUtranCellFDD=.*$ maxValidSubframeDlBr 100
+//E21486
+ ^EUtranCellFDD=.*$ minBestCellHoAttempts 1
+//E21488
+ ^EUtranCellFDD=.*$ mobCtrlAtPoorCovActive true
+//E21489
+ ^EUtranCellFDD=.*$ modificationPeriodCoeff 4
+//set ^EUtranCellFDD=.*$ noOfPucchFormat3PrbPairs 1
+//E21503
+ ^EUtranCellFDD=.*$ otdoaCheckEnabled false
+//E21504
+ ^EUtranCellFDD=.*$ otdoaSuplActive true
+//E21507
+ ^EUtranCellFDD=.*$ pMaxServingCell 23
+//E21508
+ ^EUtranCellFDD=.*$ pZeroNominalPucch -110
+//E21509
+ ^EUtranCellFDD=.*$ pZeroNominalPusch -105
+//set ^EUtranCellFDD=.*$ pciConflictCell cellId=0;enbId=0;mcc=1,mnc=1,mncLength=2
+//set ^EUtranCellFDD=.*$ pciDetectingCell cellId=0;enbId=0;mcc=1,mnc=1,mncLength=2
+//E21525
+ ^EUtranCellFDD=.*$ pdcchCfiMode 3
+//E21529
+ ^EUtranCellFDD=.*$ pdcchLaGinrMargin 100
+//E21530
+ ^EUtranCellFDD=.*$ pdcchOuterLoopInitialAdj -70
+//E21531
+ ^EUtranCellFDD=.*$ pdcchOuterLoopInitialAdjPCell -70
+//E21532
+ ^EUtranCellFDD=.*$ pdcchOuterLoopInitialAdjVolte -70
+//E21533
+ ^EUtranCellFDD=.*$ pdcchOuterLoopUpStep 8
+//E21534
+ ^EUtranCellFDD=.*$ pdcchOuterLoopUpStepPCell 6
+//E21535
+ ^EUtranCellFDD=.*$ pdcchOuterLoopUpStepVolte 6
+//E21536
+ ^EUtranCellFDD=.*$ pdcchPowerBoostMax 0
+//E21537
+ ^EUtranCellFDD=.*$ pdcchTargetBler 24
+//E21538
+ ^EUtranCellFDD=.*$ pdcchTargetBlerPCell 22
+//E21539
+ ^EUtranCellFDD=.*$ pdcchTargetBlerVolte 22
+//E21540
+ ^EUtranCellFDD=.*$ pdschMaxNrOfPrbsPerUe 100
+//E21541
+ ^EUtranCellFDD=.*$ pdschTypeBGain 1
+//E21544
+ ^EUtranCellFDD=.*$ preambleInitialReceivedTargetPower -110
+//E21549
+ ^EUtranCellFDD=.*$ prsConfigIndex 14
+//E21552
+ ^EUtranCellFDD=.*$ prsMutingPatternLen 1
+//E21553
+ ^EUtranCellFDD=.*$ prsPeriod 0
+//E21555
+ ^EUtranCellFDD=.*$ prsTransmisScheme 0
+//E21558
+ ^EUtranCellFDD=.*$ puschPwrOffset64qam 5
+//E21560
+ ^EUtranCellFDD=.*$ qQualMinOffset 1
+//E21564
+ ^EUtranCellFDD=.*$ qRxLevMinOffset 2
+//set ^EUtranCellFDD=.*$ rachRootSequence 386
+//E21567
+ ^EUtranCellFDD=.*$ rateShapingActive false
+//E21492
+ ^EUtranCellFDD=.*$ noConsecutiveSubframes 0
+//E21493
+ ^EUtranCellFDD=.*$ noOfChannelSelectionSets 4
+//E21573
+ ^EUtranCellFDD=.*$ sdmActive false
+//E21576
+ ^EUtranCellFDD=.*$ servOrPrioRedirectEnabled true
+//E21577
+ ^EUtranCellFDD=.*$ servOrPrioTriggeredErabAction 1
+//E21578
+ ^EUtranCellFDD=.*$ servOrPrioTriggeredIFHo 0
+//E21581-E21582-E21583-E21584-E21585-E21586-E21587-E21588-E21589-E21590
+ ^EUtranCellFDD=.*$ siPeriodicity siPeriodicitySI1=8,siPeriodicitySI10=64,siPeriodicitySI2=32,siPeriodicitySI3=64,siPeriodicitySI4=64,siPeriodicitySI5=8,siPeriodicitySI6=8,siPeriodicitySI7=64,siPeriodicitySI8=64,siPeriodicitySI9=64
+//E21603
+ ^EUtranCellFDD=.*$ siWindowLength 10
+//set ^EUtranCellFDD=.*$ spectrumEmissionReqMapping freqBand=1,spectrumEmissionReq=1
+//set ^EUtranCellFDD=.*$ ssacBarringForMMTELVideo acBarringFactor=95
+//set ^EUtranCellFDD=.*$ ssacBarringForMMTELVideo acBarringForSpecialAC=false false false false false
+//set ^EUtranCellFDD=.*$ ssacBarringForMMTELVideo acBarringTime=64
+//set ^EUtranCellFDD=.*$ ssacBarringForMMTELVideoPresent false
+//set ^EUtranCellFDD=.*$ ssacBarringForMMTELVoice acBarringFactor=95
+//set ^EUtranCellFDD=.*$ ssacBarringForMMTELVoice acBarringForSpecialAC=false false false false false
+//set ^EUtranCellFDD=.*$ ssacBarringForMMTELVoice acBarringTime=64
+//set ^EUtranCellFDD=.*$ ssacBarringForMMTELVoicePresent false
+//E21621-E21622-E21623-E21626-E21627-E21628-E21629-E21630-E21631-E21632-E21633-E21634-E21635-E21636
+ ^EUtranCellFDD=.*$ systemInformationBlock3 nCellChangeHigh=10,nCellChangeMedium=4,qHyst=3,sIntraSearchv920Active=true,sNonIntraSearchv920Active=true,tEvaluation=30,tHystNormal=30,threshServingLowQ=1000
+//E21646-E21647-E21648-E21649-E21650-E21651-E21652
+ ^EUtranCellFDD=.*$ systemInformationBlock8 searchWindowSizeCdma=13,tReselectionCdma1xRtt=2,tReselectionCdma1xRttSfHigh=100,tReselectionCdma1xRttSfMedium=100,tReselectionCdmaHrpd=7,tReselectionCdmaHrpdSfHigh=100,tReselectionCdmaHrpdSfMedium=100
+//E21655
+ ^EUtranCellFDD=.*$ tUeBlockingTimer 50
+//E21660
+ ^EUtranCellFDD=.*$ ttiBundlingAfterHo 1
+//E21661
+ ^EUtranCellFDD=.*$ ttiBundlingAfterReest 1
+//E21662
+ ^EUtranCellFDD=.*$ ttiBundlingSwitchThres 90
+//E21663
+ ^EUtranCellFDD=.*$ ttiBundlingSwitchThresHyst 10
+//E21664
+ ^EUtranCellFDD=.*$ ul64qamEnabled true
+//E21665
+ ^EUtranCellFDD=.*$ ulBlerTargetEnabled true
+//set ^EUtranCellFDD=.*$ ulChannelBandwidth 10000
+//E21682
+ ^EUtranCellFDD=.*$ uncertSemiMajor 8
+//E21683
+ ^EUtranCellFDD=.*$ uncertSemiMinor 8
+
+#================ExternalEUtranCellFDD================#
+//for $mo in extband18cell
+//$ldn = ldn($mo)
+//  set $ldn activePlmnList mcc=440,mnc=50,mncLength=2;mcc=440,mnc=51,mncLength=2;mcc=440,mnc=52,mncLength=2
+//done
+
+//for $mo in allextcell
+//$ldn = ldn($mo)
+//  set $ldn activePlmnList mcc=440,mnc=50,mncLength=2;mcc=440,mnc=51,mncLength=2
+//done
+
+//deprecated//set ^ExternalEUtranCellFDD=.*$ csgPhysCellId 1000
+//deprecated//set ^ExternalEUtranCellFDD=.*$ csgPhysCellIdRange 1
+//set ^ExternalEUtranCellFDD=.*$ pciConflictCell cellId=0;enbId=0;mcc=1,mnc=1,mncLength=2
+//set ^ExternalEUtranCellFDD=.*$ pciDetectingCell cellId=0;enbId=0;mcc=1,mnc=1,mncLength=2
+
+#=============EUtranCellRelation============#
+//set ^EUtranCellRelation=.*$ cellIndividualOffsetEUtran 0
+//set ^EUtranCellRelation=.*$ coverageIndicator 0
+//set ^EUtranCellRelation=.*$ includeInSystemInformation true
+//set ^EUtranCellRelation=.*$ isHoAllowed true
+//set ^EUtranCellRelation=.*$ lbCovIndicated false
+
+
+################################################################
+## Directory Variables
+################################################################
+l mkdir 01_Check_Result
+$CHKResultDir = 01_Check_Result/Test
+$DirParamCHK = $CHKResultDir/03_Parameter
+l mkdir $CHKResultDir
+l mkdir $DirParamCHK
+
+################################################################
+## System Constant Setting
+################################################################
+
+sysconread
+
+sysconwrite 1757 105
+sysconwrite 1656 1
+sysconwrite 988 8
+sysconwrite 982 250
+
+pr b41cell
+if $nr_of_mos != 0
+  sysconwrite 257 4000
+fi
+
+################################################################
+## System Constant Check
+################################################################
+get ^ENodeBFunction=1$ ^eNBId$ > $ENB
+$date1 = `date +%y%m%d_%H%M`
+l+ $tempdir/$ENB_SC_Check_$date1.log
+sysconread
+l-
+
+$sc_257 = `cat $tempdir/$ENB_SC_Check_$date1.log |grep "257:4000" |wc -l`
+$sc_1656 = `cat $tempdir/$ENB_SC_Check_$date1.log |grep "1656:1" |wc -l`
+$sc_1757 = `cat $tempdir/$ENB_SC_Check_$date1.log |grep "1757:105" |wc -l`
+$sc_982 = `cat $tempdir/$ENB_SC_Check_$date1.log |grep "982:250" |wc -l`
+$sc_988 = `cat $tempdir/$ENB_SC_Check_$date1.log |grep "988:8" |wc -l`
+
+$SC_Count = `expr $sc_257 + $sc_1656 + $sc_1757 + $sc_982 + $sc_988`
+
+if $SC_Count = 5
+  $SC_Value = 257_1656_1757_982_988
+else if $SC_Count = 4 && $sc_257 = 0
+  $SC_Value = 1656_1757_982_988
+else
+  $SC_Value = NG
+fi
+
+func SC_Check_B41
+  if $SC_Value = 257_1656_1757_982_988
+    l+ $DirParamCHK/OK_$ENB_SC_Result_$date1.txt
+    sysconread
+    l-
+  else
+    l+ $DirParamCHK/NG_$ENB_SC_Result_$date1.txt
+    sget ^SystemConstants=1$ ^systConstants$
+    sysconread
+    l-
+  fi
+endfunc
+
+func SC_Check_noB41
+  if $SC_Value = 1656_1757_982_988
+    l+ $DirParamCHK/OK_$ENB_SC_Result_$date1.txt
+    sysconread
+    l-
+  else
+    l+ $DirParamCHK/NG_$ENB_SC_Result_$date1.txt
+    sget ^SystemConstants=1$ ^systConstants$
+    sysconread
+    l-
+  fi
+endfunc
+
+pr b41cell
+if $nr_of_mos != 0
+  SC_Check_B41
+else
+  SC_Check_noB41
+fi
+
+!rm $tempdir/$ENB_SC_Check_$date1.log
+
+
+############################################################
+##
+## Create Dummy Neighbor to LTE Femto for B41 and B42
+##
+############################################################
+
+### Create ExternalENodeBFunction=49999
+cr ENodeBFunction=1,EUtraNetwork=1,ExternalENodeBFunction=49999
+mcc=440,mnc=50,mncLength=2
+49999
+
+//set ^ExternalENodeBFunction=49999 masterEnbFunctionId 49999
+ ^ExternalENodeBFunction=49999 mfbiSupport true
+
+### Create ExternalEUtranCellFDD=44050-49999251 
+cr ENodeBFunction=1,EUtraNetwork=1,ExternalENodeBFunction=49999,ExternalEUtranCellFDD=44050-49999251
+251
+167
+0
+4066
+EUtraNetwork=1,EUtranFrequency=5900
+
+ ^ExternalEUtranCellFDD=44050-49999251$ activePlmnList mcc=440,mnc=50,mncLength=2;mcc=440,mnc=51,mncLength=2
+//set ^ExternalEUtranCellFDD=44050-49999251$ masterEUtranCellFDDId 44050-49999251
+
+### Create ExternalEUtranCellFDD=44050-49999252
+cr ENodeBFunction=1,EUtraNetwork=1,ExternalENodeBFunction=49999,ExternalEUtranCellFDD=44050-49999252
+252
+167
+1
+4066
+EUtraNetwork=1,EUtranFrequency=5900
+
+ ^ExternalEUtranCellFDD=44050-49999252$ activePlmnList mcc=440,mnc=50,mncLength=2;mcc=440,mnc=51,mncLength=2
+//set ^ExternalEUtranCellFDD=44050-49999252$ masterEUtranCellFDDId 44050-49999252
+
+### Create ExternalEUtranCellFDD=44050-49999253
+cr ENodeBFunction=1,EUtraNetwork=1,ExternalENodeBFunction=49999,ExternalEUtranCellFDD=44050-49999253
+253
+167
+2
+4066
+EUtraNetwork=1,EUtranFrequency=5900
+
+ ^ExternalEUtranCellFDD=44050-49999253$ activePlmnList mcc=440,mnc=50,mncLength=2;mcc=440,mnc=51,mncLength=2
+//set ^ExternalEUtranCellFDD=44050-49999253$ masterEUtranCellFDDId 44050-49999253
+
+### Create Dummy_relation
+ma Dummy_relation EUtranCellTDD=.*,Eutranfreqrelation=5900$
+
+for $mo in Dummy_relation
+$ldn = ldn($mo)
+  cr $ldn,EUtranCellRelation=44050-49999-251
+  EUtraNetwork=1,ExternalENodeBFunction=49999,ExternalEUtranCellFDD=44050-49999251
+  cr $ldn,EUtranCellRelation=44050-49999-252
+  EUtraNetwork=1,ExternalENodeBFunction=49999,ExternalEUtranCellFDD=44050-49999252
+  cr $ldn,EUtranCellRelation=44050-49999-253
+  EUtraNetwork=1,ExternalENodeBFunction=49999,ExternalEUtranCellFDD=44050-49999253
+done
+
+ ^EUtranCellRelation=44050-49999-25[123]$ amoAllowed true
+ ^EUtranCellRelation=44050-49999-25[123]$ cellIndividualOffsetEUtran 0
+ ^EUtranCellRelation=44050-49999-25[123]$ coverageIndicator 0
+ ^EUtranCellRelation=44050-49999-25[123]$ includeInSystemInformation false
+ ^EUtranCellRelation=44050-49999-25[123]$ isHoAllowed false
+ ^EUtranCellRelation=44050-49999-25[123]$ isRemoveAllowed false
+ ^EUtranCellRelation=44050-49999-25[123]$ lbCovIndicated false
+ ^EUtranCellRelation=44050-49999-25[123]$ loadBalancing 0
+ ^EUtranCellRelation=44050-49999-25[123]$ qOffsetCellEUtran 0
+ ^EUtranCellRelation=44050-49999-25[123]$ sCellCandidate 2
+ ^EUtranCellRelation=44050-49999-25[123]$ ieNBUlCompCoopCellAllowed true
+mr Dummy_relation
+
+################################################################
+##  Reset moshell options
+################################################################
+
+
+mr b11cell
+mr cellF_B1
+mr b1cell_10m
+mr b1cell_20m
+mr b41cell
+mr allextcell
+mr extband18cell
+mr cellF_10m
+mr cellF_20m
+mr ext_cellF_10m
+mr ext_cellF_20m
+
+unset all
+confb-
+gs-
+s-
+
+
+################################################################
+##
+##  Script loading completed.
+##  Please check the result.
+##
+################################################################
