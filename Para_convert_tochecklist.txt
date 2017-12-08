@@ -1,0 +1,16 @@
+sed '/\(^s*$\|^\/\/.*$\) d' para.mos
+
+gawk -i inplace '$2~/Ref$/{print $1,$2;next}{gsub(/=[^,]*/,"",$3);split($3,a,",");for(i in a)print $1,$2(a[i]~/[[:digit:]]/&&a[i]!~/[[:alpha:]]/||a[i]~/false|true|FALSE|TRUE/?" ":".")a[i]}' para.mos
+
+cp para.mos tem_para.mos
+
+sed -i 's/^set[[:space:]]\|^set1[[:space:]]\|^[[:blank:]]*//g' tem_para.mos
+
+sed -e 's/\(\^\|\=[0-9]\$\|\$\|\=\.\*\|\-[[0-9]*]\|\)//g' -e 's/^\s*//;s/\r$//g'  tem_para.mos | awk '{sub(/.*,/,"",$1);print}' | awk '{sub(/=[^C].*/,"",$1);print}' > tem_para.mos
+
+awk 'NR==FNR{a[$1,$2]=$3;next}{print $1,$2,$3,a[$1,$2]}' MO_ID.txt tem_para.mos | awk '{printf("%s\n",($NF~/E2[0-9]*$/? $NF : NULL))}' > tem_mid.txt
+
+sed -i 's/ /;/;s/ /;/;s/\r//g;s/$/;/;s/\n//g' para.mos
+
+paste para.mos tem_mid.txt | sed 's/\t//g' > Checklist.txt
+
