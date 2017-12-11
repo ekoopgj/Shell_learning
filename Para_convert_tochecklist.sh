@@ -1,5 +1,8 @@
 #!/bin/bash
 
+MYTIME=`date +%G%m%d%H%M%S`
+FILENAME=Checklist_$MYTIME
+
 sed -i '/\(^s*$\|^\/\/.*$\)/ d' test.txt
 
 sed -i 's/^set[[:space:]]\|^set1[[:space:]]\|^[[:blank:]]*//g' test.txt
@@ -25,4 +28,9 @@ paste test.txt tem_mid.txt | sed 's/\t//g' > tem_Checklist.txt
 
 awk 'NR==FNR{a[$2,$3]=$1;next}{print a[$1,$2],$0}' MO_ID.txt tem_para.mos | awk '{printf("%s;\n",($1~/[[:digit:]]/&&$1!~/Feature/? $1 : NULL))}' > tem_FunId.txt
 
-paste tem_FunId.txt tem_Checklist.txt | sed 's/\t//g'
+paste tem_FunId.txt tem_Checklist.txt | sed 's/\t//g' > $FILENAME.txt
+
+rm ./tem_*
+
+echo -e "\e[1;31m Checklist file generation completed, Please Check! \e[0m"
+
