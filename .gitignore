@@ -1,0 +1,5 @@
+#忽略所有以txt结尾的文件
+*.txt
+*.html
+build/
+Test/
